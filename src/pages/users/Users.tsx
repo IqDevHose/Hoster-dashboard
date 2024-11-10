@@ -25,7 +25,10 @@ type User = {
 export default function UsersPage() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Initialize query client
   const queryClient = useQueryClient();
@@ -89,13 +92,11 @@ export default function UsersPage() {
         return (
           <div className="relative">
             <Avatar>
-              <AvatarImage
-                src={imageData}
-                alt="user-image"
-              />
-              <AvatarFallback>{(row.getValue("name") as string)?.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarImage src={imageData} alt="user-image" />
+              <AvatarFallback>
+                {(row.getValue("name") as string)?.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
-            
           </div>
         );
       },
@@ -108,11 +109,7 @@ export default function UsersPage() {
         return (
           <div className="flex items-center gap-1">
             <span>{row.getValue("name")}</span>
-            {isCurrentUser && (
-              <Badge variant="outline">
-                Me
-              </Badge>
-            )}
+            {isCurrentUser && <Badge variant="outline">Me</Badge>}
           </div>
         );
       },
@@ -131,9 +128,7 @@ export default function UsersPage() {
       cell: ({ row }) => {
         const role = row.getValue("role") as string;
         return (
-          <Badge variant={role === "ADMIN" ? "blue" : "default"}>
-            {role}
-          </Badge>
+          <Badge variant={role === "ADMIN" ? "blue" : "default"}>{role}</Badge>
         );
       },
     },
@@ -148,7 +143,11 @@ export default function UsersPage() {
           <div className="flex gap-2">
             {/* Link to Edit user */}
             <Link to={`/edit-user/${id}`}>
-              <Button variant="ghost" size="icon" className="text-blue-500 hover:text-blue-600">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 hover:text-blue-600"
+              >
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
@@ -180,10 +179,10 @@ export default function UsersPage() {
         buttons={[
           <Link to="/new-user" key="add-user">
             {/* add plus icon */}
-            
+
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add User</span>
+              <span>Add Plan</span>
             </Button>
           </Link>,
         ]}
@@ -195,7 +194,8 @@ export default function UsersPage() {
         editLink={"/edit-user"} // Provide the base link for editing users
         handleDelete={function (id: string): void {
           throw new Error("Function not implemented.");
-        } }      />
+        }}
+      />
 
       {/* Confirmation Modal */}
       <ConfirmationModal
