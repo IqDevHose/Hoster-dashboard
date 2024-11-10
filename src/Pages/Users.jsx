@@ -1,67 +1,114 @@
 import React, { useEffect, useState } from "react";
+import Tape from "../components/Tape";
 
-const Users = () => {
-  const [users, setUsers] = useState([]);
+const CRMTable = () => {
+  const [leads, setLeads] = useState([]);
+  const [filter, setFilter] = useState("");
 
-  // Fetch data when the component mounts (replace this with your backend API call later)
   useEffect(() => {
-    // Example data for now
-    setUsers([
-      { id: 1, name: "John Doe", email: "john.doe@example.com" },
-      { id: 2, name: "Jane Smith", email: "jane.smith@example.com" },
-      { id: 3, name: "Mike Johnson", email: "mike.johnson@example.com" },
+    setLeads([
+      {
+        id: 1,
+        leadName: "Ibrahim Muhsin",
+        company: "Alseef",
+        phoneNumber: "+971505553399",
+        serviceRequired: "Ecommerce Website",
+        date: "November 7, 2024",
+        user: "Kadhim Maan, Ibrahim Almoushin",
+      },
+      {
+        id: 2,
+        leadName: "Hussain Jawad",
+        company: "Madina",
+        phoneNumber: "+971505555550",
+        serviceRequired: "Domain Registration",
+        date: "November 7, 2024",
+        user: "Kadhim Maan, Ibrahim Almoushin",
+      },
+      {
+        id: 3,
+        leadName: "Ahmad Ali",
+        company: "Forat Company",
+        phoneNumber: "00971505359157",
+        serviceRequired: "Domain Registration",
+        date: "November 7, 2024",
+        user: "Kadhim Maan, Ibrahim Almoushin",
+      },
     ]);
   }, []);
 
+  const handleFilterChange = (e) => {
+    setFilter(e.target.value);
+  };
+
+  const handleAdd = () => {
+    console.log("Add button clicked");
+  };
+
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-semibold text-gray-700 mb-4">Users</h2>
+      <Tape
+        title="Sales CRM"
+        filterOptions={["Ecommerce Website", "Domain Registration"]}
+        filterValue={filter}
+        onFilterChange={handleFilterChange}
+        onAdd={handleAdd}
+      />
       <div className="overflow-x-auto bg-white rounded-lg shadow-lg">
         <table className="min-w-full table-auto">
           <thead>
             <tr className="bg-gray-100 text-left">
               <th className="py-3 px-4 text-sm font-medium text-gray-500">
-                ID
+                Lead Name
               </th>
               <th className="py-3 px-4 text-sm font-medium text-gray-500">
-                Name
+                Company
               </th>
               <th className="py-3 px-4 text-sm font-medium text-gray-500">
-                Email
+                Phone Number
               </th>
               <th className="py-3 px-4 text-sm font-medium text-gray-500">
-                Actions
+                Service Required
+              </th>
+              <th className="py-3 px-4 text-sm font-medium text-gray-500">
+                Date
+              </th>
+              <th className="py-3 px-4 text-sm font-medium text-gray-500">
+                User
               </th>
             </tr>
           </thead>
           <tbody>
-            {users.length > 0 ? (
-              users.map((user) => (
-                <tr key={user.id} className="border-b hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm text-gray-600">{user.id}</td>
+            {leads.length > 0 ? (
+              leads.map((lead) => (
+                <tr key={lead.id} className="border-b hover:bg-gray-50">
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {user.name}
+                    {lead.leadName}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    {user.email}
+                    {lead.company}
                   </td>
                   <td className="py-3 px-4 text-sm text-gray-600">
-                    <button className="text-blue-600 hover:underline">
-                      Edit
-                    </button>
-                    <button className="ml-4 text-red-600 hover:underline">
-                      Delete
-                    </button>
+                    {lead.phoneNumber}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {lead.serviceRequired}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {lead.date}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-600">
+                    {lead.user}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan="4"
+                  colSpan="6"
                   className="py-3 px-4 text-center text-sm text-gray-500"
                 >
-                  No users available.
+                  No leads available.
                 </td>
               </tr>
             )}
@@ -72,4 +119,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default CRMTable;

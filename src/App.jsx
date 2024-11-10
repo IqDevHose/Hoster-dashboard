@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Sidebar from "./Components/SideBar";
 import Users from "./Pages/Users";
 import Subscriptions from "./Pages/Subscriptions";
 import Settings from "./Pages/Settings";
+import Sidebar from "./components/SideBar";
 
 function App() {
   return (

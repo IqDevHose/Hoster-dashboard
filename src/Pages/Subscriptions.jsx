@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-
+import { Button } from "@/components/ui/button";
+import Tape from "../components/Tape";
 const Subscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [filter, setFilter] = useState("");
 
   // Simulate data fetching, replace this with an actual API call to get subscription data
   useEffect(() => {
@@ -30,11 +32,24 @@ const Subscriptions = () => {
     ]);
   }, []);
 
+  const handleFilterChange = (e) => {
+    setFilter(e.target.value);
+  };
+
+  const handleAdd = () => {
+    console.log("Add button clicked");
+  };
+
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-semibold text-gray-700 mb-4">
-        Subscriptions
-      </h2>
+      <Tape
+        title="Subscriptions"
+        filterOptions={["Ecommerce Website", "Domain Registration"]}
+        filterValue={filter}
+        onFilterChange={handleFilterChange}
+        onAdd={handleAdd}
+      />
+      <Button />
       <div className="overflow-x-auto bg-white rounded-lg shadow-lg">
         <table className="min-w-full table-auto">
           <thead>
