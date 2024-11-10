@@ -25,12 +25,14 @@ import Plans from "./pages/plans/Plans";
 import AddSubscription from "./pages/subs/AddSubscription";
 import Subscriptions from "./pages/subs/Subscriptions";
 import EditSubscription from "./pages/subs/EditSubscription";
+import Otp from "./pages/auth/Otp";
 
 function App() {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/otp" element={<Otp />} />
       <Route path="/register" element={<RegisterPage />} />
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
