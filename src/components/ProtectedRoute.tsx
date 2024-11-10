@@ -5,10 +5,8 @@ import Sidebar from "./ui/sidebar";
 const isAuthenticated = (): boolean => {
   // Implement your actual authentication logic here
   // For example, check if a token exists in localStorage
-  return !!localStorage.getItem("jwtToken");
+  return !!localStorage.getItem("token");
 };
-
-
 
 const ProtectedRoute = () => {
   if (!isAuthenticated()) {

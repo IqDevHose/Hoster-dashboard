@@ -25,12 +25,14 @@ import Plans from "./pages/plans/Plans";
 import AddSubscription from "./pages/subs/AddSubscription";
 import Subscriptions from "./pages/subs/Subscriptions";
 import EditSubscription from "./pages/subs/EditSubscription";
+import Otp from "./pages/auth/Otp";
 
 function App() {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/otp" element={<Otp />} />
       <Route path="/register" element={<RegisterPage />} />
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
@@ -47,12 +49,6 @@ function App() {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/new-subscription" element={<AddSubscription />} />
         <Route path="/edit-subscription" element={<EditSubscription />} />
-
-        {/* <Route path="/settings" element={<Settings />} /> */}
-
-        {/* <Route path="/auctions" element={<Auctions />} /> */}
-        {/* <Route path="/new-auction" element={<AddAuction />} />
-        <Route path="/edit-auction/:id" element={<EditAuction />} /> */}
       </Route>
 
       {/* Optional: Catch-all route for unmatched paths */}

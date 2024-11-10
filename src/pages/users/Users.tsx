@@ -14,12 +14,14 @@ import { Badge } from "@/components/ui/badge";
 import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
 
 type User = {
-  id: string;
-  name: string;
+  avatar: null;
+  birthDay: string;
   email: string;
+  gender: "male";
+  id: number;
+  name: string;
   phone: string;
-  image: string; // This will be a base64 string
-  role: string;
+  type: string;
 };
 
 export default function UsersPage() {
@@ -41,7 +43,9 @@ export default function UsersPage() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/users");
+      const res = await axiosInstance.get("/auth/users");
+      console.log("Fetched users:", res.data); // Log the fetched data
+
       return res.data;
     },
   });
@@ -75,12 +79,13 @@ export default function UsersPage() {
     );
 
   // Filter users based on search input
-  const filteredData = users?.filter(
+  const filteredData = users?.data?.filter(
     (user: User) =>
       user?.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
       user?.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
       user?.phone?.includes(userSearch)
   );
+  console.log(users);
 
   // Define the columns for the table
   const columns: ColumnDef<User>[] = [
@@ -123,12 +128,12 @@ export default function UsersPage() {
       header: "Phone",
     },
     {
-      accessorKey: "role",
+      accessorKey: "type",
       header: "Role",
       cell: ({ row }) => {
-        const role = row.getValue("role") as string;
+        const role = row.getValue("type") as string;
         return (
-          <Badge variant={role === "ADMIN" ? "blue" : "default"}>{role}</Badge>
+          <Badge variant={role === "admin" ? "blue" : "default"}>{role}</Badge>
         );
       },
     },
