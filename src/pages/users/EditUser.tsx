@@ -4,70 +4,81 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import PageTitle from "@/components/PageTitle";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, EyeOff } from "lucide-react";
 
-const schema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal('')),
-  confirm: z.string().optional().or(z.literal('')),
-  role: z.enum(["ADMIN", "USER"]),
-  image: z.string().optional(),
-}).refine((data) => data.password === data.confirm, {
-  message: "Passwords do not match",
-  path: ["confirm"],
-});
+const schema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().optional(),
+    password: z
+      .string()
+      .min(6, "Password must be at least 6 characters")
+      .optional()
+      .or(z.literal("")),
+    confirm: z.string().optional().or(z.literal("")),
+    role: z.enum(["ADMIN", "USER"]),
+    image: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: "Passwords do not match",
+    path: ["confirm"],
+  });
 
 type FormData = z.infer<typeof schema>;
 
 const EditUser = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { control, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       role: "USER",
     },
   });
 
-  const { data: user } = useQuery({
-    queryKey: ["user", id],
-    queryFn: async () => {
-      const res = await axiosInstance.get(`/users/${id}`);
-      return res.data;
-    },
-    enabled: !!id,
-  });
-
   useEffect(() => {
-    if (user) {
+    if (location.state?.user) {
+      const user = location.state.user;
       reset({
         name: user.name,
         email: user.email,
         phone: user.phone || "",
         role: user.role,
       });
-      setImagePreview(user.image ? user.image : null);
+      setImagePreview(user.image || null);
     }
-  }, [user, reset]);
+  }, [location.state, reset]);
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       const { confirm, ...dataToSend } = data;
-      return await axiosInstance.put(`/users/${id}`, dataToSend);
+      return await axiosInstance.put(`/auth/users/${id}`, dataToSend);
     },
     onSuccess: () => {
       navigate("/users");
@@ -81,7 +92,7 @@ const EditUser = () => {
       reader.onloadend = () => {
         const base64String = reader.result as string;
         setImagePreview(base64String);
-        setValue('image', base64String);
+        setValue("image", base64String);
       };
       reader.readAsDataURL(file);
     }
@@ -94,7 +105,9 @@ const EditUser = () => {
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
       <PageTitle title="Edit User" />
-      {mutation.error && <div className="text-red-500">{(mutation.error as Error).message}</div>}
+      {mutation.error && (
+        <div className="text-red-500">{(mutation.error as Error).message}</div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
           <label htmlFor="name">Name</label>
@@ -102,7 +115,13 @@ const EditUser = () => {
             name="name"
             control={control}
             render={({ field }) => (
-              <Input {...field} id="name" type="text" disabled={mutation.isPending} className={`${errors.name ? 'border-red-500' : ''}`} />
+              <Input
+                {...field}
+                id="name"
+                type="text"
+                disabled={mutation.isPending}
+                className={`${errors.name ? "border-red-500" : ""}`}
+              />
             )}
           />
           {errors.name && <p className="text-red-500">{errors.name.message}</p>}
@@ -114,10 +133,18 @@ const EditUser = () => {
             name="email"
             control={control}
             render={({ field }) => (
-              <Input {...field} id="email" type="email" disabled={mutation.isPending} className={`${errors.email ? 'border-red-500' : ''}`} />
+              <Input
+                {...field}
+                id="email"
+                type="email"
+                disabled={mutation.isPending}
+                className={`${errors.email ? "border-red-500" : ""}`}
+              />
             )}
           />
-          {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+          {errors.email && (
+            <p className="text-red-500">{errors.email.message}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -126,14 +153,24 @@ const EditUser = () => {
             name="phone"
             control={control}
             render={({ field }) => (
-              <Input {...field} id="phone" type="tel" disabled={mutation.isPending} className={`${errors.phone ? 'border-red-500' : ''}`} />
+              <Input
+                {...field}
+                id="phone"
+                type="tel"
+                disabled={mutation.isPending}
+                className={`${errors.phone ? "border-red-500" : ""}`}
+              />
             )}
           />
-          {errors.phone && <p className="text-red-500">{errors.phone.message}</p>}
+          {errors.phone && (
+            <p className="text-red-500">{errors.phone.message}</p>
+          )}
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="password">New Password (leave blank if not changing)</label>
+        {/* <div className="flex flex-col gap-2">
+          <label htmlFor="password">
+            New Password (leave blank if not changing)
+          </label>
           <div className="relative">
             <Controller
               name="password"
@@ -144,7 +181,7 @@ const EditUser = () => {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   disabled={mutation.isPending}
-                  className={`${errors.password ? 'border-red-500' : ''} pr-10`}
+                  className={`${errors.password ? "border-red-500" : ""} pr-10`}
                 />
               )}
             />
@@ -153,13 +190,19 @@ const EditUser = () => {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
-              {showPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-500" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-500" />
+              )}
             </button>
           </div>
-          {errors.password && <p className="text-red-500">{errors.password.message}</p>}
-        </div>
+          {errors.password && (
+            <p className="text-red-500">{errors.password.message}</p>
+          )}
+        </div> */}
 
-        <div className="flex flex-col gap-2">
+        {/* <div className="flex flex-col gap-2">
           <label htmlFor="confirm">Confirm New Password</label>
           <div className="relative">
             <Controller
@@ -171,7 +214,7 @@ const EditUser = () => {
                   id="confirm"
                   type={showConfirmPassword ? "text" : "password"}
                   disabled={mutation.isPending}
-                  className={`${errors.confirm ? 'border-red-500' : ''} pr-10`}
+                  className={`${errors.confirm ? "border-red-500" : ""} pr-10`}
                 />
               )}
             />
@@ -180,11 +223,17 @@ const EditUser = () => {
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4 text-gray-500" /> : <Eye className="h-4 w-4 text-gray-500" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-500" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-500" />
+              )}
             </button>
           </div>
-          {errors.confirm && <p className="text-red-500">{errors.confirm.message}</p>}
-        </div>
+          {errors.confirm && (
+            <p className="text-red-500">{errors.confirm.message}</p>
+          )}
+        </div> */}
 
         <div className="flex flex-col gap-2">
           <label htmlFor="role">Role</label>
@@ -192,7 +241,7 @@ const EditUser = () => {
             name="role"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value} >
+              <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
