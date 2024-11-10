@@ -12,6 +12,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
+import Loading from "@/components/Loading";
 
 type User = {
   id: string;
@@ -60,12 +61,8 @@ export default function UsersPage() {
     }
   };
 
-  if (isLoading)
-    return (
-      <div className="flex justify-center items-center h-full self-center mx-auto">
-        <Spinner size="md" />
-      </div>
-    );
+  // Loading state
+  if (isLoading) return <Loading />;
 
   if (error)
     return (

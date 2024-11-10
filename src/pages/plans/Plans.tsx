@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { LucidePen, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -93,6 +93,22 @@ export default function Plans() {
       accessorKey: "price",
       header: "Price",
     },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+
+        return (
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 justify-center items-center">
+            <Link state={{}} to={`/edit-plan/${row.original.id}`} className="hover:bg-slate-300 rounded-md transition ease-in-out p-2" >
+                <LucidePen size={17} className="text-gray-600"/>
+            </Link>
+            </div>
+          </div>
+        );
+      },
+    }
   ];
 
   // Loading state

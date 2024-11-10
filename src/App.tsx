@@ -46,7 +46,7 @@ function App() {
 
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/new-subscription" element={<AddSubscription />} />
-        <Route path="/edit-subscription" element={<EditSubscription />} />
+        <Route path="/edit-subscription/:id" element={<EditSubscription />} />
 
         {/* <Route path="/settings" element={<Settings />} /> */}
 
