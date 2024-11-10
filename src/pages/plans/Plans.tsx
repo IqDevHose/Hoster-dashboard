@@ -103,7 +103,7 @@ export default function Plans() {
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-plan/${id}`}>
+            <Link to={`/edit-plan/${id}`} state={{ plan: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -130,14 +130,18 @@ export default function Plans() {
         return (
           <div className="flex flex-col gap-2">
             <div className="flex gap-2 justify-center items-center">
-            <Link state={{}} to={`/edit-plan/${row.original.id}`} className="hover:bg-slate-300 rounded-md transition ease-in-out p-2" >
-                <LucidePen size={17} className="text-gray-600"/>
-            </Link>
+              <Link
+                state={{}}
+                to={`/edit-plan/${row.original.id}`}
+                className="hover:bg-slate-300 rounded-md transition ease-in-out p-2"
+              >
+                <LucidePen size={17} className="text-gray-600" />
+              </Link>
             </div>
           </div>
         );
       },
-    }
+    },
   ];
 
   // Loading state
@@ -159,14 +163,14 @@ export default function Plans() {
   const handleDelete = async (id: string) => {
     try {
       // Optionally fetch the product to confirm it exists
-      const response = await axiosInstance.get(`/product/${id}`);
+      const response = await axiosInstance.get(`/plans/${id}`);
       if (!response.data) {
         console.error("Product not found:", id);
         return;
       }
 
       // Delete the product
-      await axiosInstance.delete(`/product/${id}`);
+      await axiosInstance.delete(`/plans/${id}`);
 
       // Optionally update the local state to reflect the deletion
       setModalOpen(false); // Close modal after deletion
