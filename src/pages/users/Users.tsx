@@ -144,7 +144,7 @@ export default function UsersPage() {
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-user/${id}`}>
+            <Link to={`/edit-user/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
