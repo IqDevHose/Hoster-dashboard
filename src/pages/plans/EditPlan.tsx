@@ -27,7 +27,7 @@ interface CategoryOption {
   label: string;
 }
 
-const EditProduct = () => {
+const EditPlan = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -222,4 +222,4 @@ const EditProduct = () => {
   );
 };
 
-export default EditProduct;
+export default EditPlan;

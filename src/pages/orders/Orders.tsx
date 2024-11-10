@@ -42,7 +42,7 @@ export default function OrdersPage() {
   } = useQuery({
     queryKey: ["orders"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/order");
+      const res = await axiosInstance.get("/orders");
       return res.data;
     },
   });

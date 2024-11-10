@@ -69,7 +69,7 @@ export default function Sidebar({}: Props) {
                 },
                 {
                   title: "Subscriptions",
-                  href: "/orders",
+                  href: "/subscriptions",
                   icon: ListCheck,
                   variant: "ghost",
                 },

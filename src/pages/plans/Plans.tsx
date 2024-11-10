@@ -142,10 +142,10 @@ export default function Plans() {
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to={"/new-product"} key="add-product">
+          <Link to={"/new-plan"} key="add-product">
             <Button variant={"default"} className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add Product</span>
+              <span>Add Plan</span>
             </Button>
           </Link>,
         ]}

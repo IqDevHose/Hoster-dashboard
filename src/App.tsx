@@ -3,10 +3,12 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Users from "./pages/users/Users";
-import ProductsPage from "./pages/products/Plans";
+import ProductsPage from "./pages/plans/Plans";
 import OrdersPage from "./pages/orders/Orders";
 import Settings from "./pages/settings/Settings";
-import AddProduct from "./pages/products/AddProduct";
+
+import AddPlan from "./pages/plans/AddPlan";
+
 import AddOrder from "./pages/orders/AddOrder";
 import AddUser from "./pages/users/AddUser";
 import EditUser from "./pages/users/EditUser";
@@ -18,8 +20,8 @@ import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRou
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
-import EditProduct from "./pages/products/EditProduct";
-import Plans from "./pages/products/Plans";
+import EditPlan from "./pages/plans/EditPlan";
+import Plans from "./pages/plans/Plans";
 
 function App() {
   return (
@@ -30,16 +32,17 @@ function App() {
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<Home />} />
+
         <Route path="/users" element={<Users />} />
         <Route path="/new-user" element={<AddUser />} />
         <Route path="/edit-user/:id" element={<EditUser />} />
 
         <Route path="/plans" element={<Plans />} />
-        <Route path="/new-product" element={<AddProduct />} />
-        <Route path="/edit-product/:id" element={<EditProduct />} />
+        <Route path="/new-plan" element={<AddPlan />} />
+        <Route path="/edit-plan/:id" element={<EditPlan />} />
 
-        <Route path="/orders" element={<OrdersPage />} />
-        <Route path="/new-order" element={<AddOrder />} />
+        <Route path="/subscriptions" element={<OrdersPage />} />
+        <Route path="/new-subscription" element={<AddOrder />} />
 
         {/* <Route path="/settings" element={<Settings />} /> */}
 
