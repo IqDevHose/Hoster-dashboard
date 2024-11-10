@@ -22,6 +22,9 @@ import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import EditPlan from "./pages/plans/EditPlan";
 import Plans from "./pages/plans/Plans";
+import AddSubscription from "./pages/subs/AddSubscription";
+import Subscriptions from "./pages/subs/Subscriptions";
+import EditSubscription from "./pages/subs/EditSubscription";
 
 function App() {
   return (
@@ -41,8 +44,15 @@ function App() {
         <Route path="/new-plan" element={<AddPlan />} />
         <Route path="/edit-plan/:id" element={<EditPlan />} />
 
-        <Route path="/subscriptions" element={<OrdersPage />} />
-        <Route path="/new-subscription" element={<AddOrder />} />
+        <Route path="/subscriptions" element={<Subscriptions />} />
+        <Route path="/new-subscription" element={<AddSubscription />} />
+        <Route path="/edit-subscription" element={<EditSubscription />} />
+
+        {/* <Route path="/settings" element={<Settings />} /> */}
+
+        {/* <Route path="/auctions" element={<Auctions />} /> */}
+        {/* <Route path="/new-auction" element={<AddAuction />} />
+        <Route path="/edit-auction/:id" element={<EditAuction />} /> */}
       </Route>
 
       {/* Optional: Catch-all route for unmatched paths */}
