@@ -22,7 +22,7 @@ const planSchema = z.object({
       .string()
       .min(10, "Description in Arabic must be at least 10 characters"),
   }),
-  price: z.string().regex(/^\d+$/, "Price must be a number"),
+  price: z.number(),
 });
 
 type FormData = z.infer<typeof planSchema>;
@@ -45,7 +45,7 @@ const EditPlan = () => {
     defaultValues: {
       name: { en: "", ar: "" },
       description: { en: "", ar: "" },
-      price: "",
+      price: 0,
     },
   });
 
