@@ -60,25 +60,31 @@ export default function Plans() {
     {
       accessorKey: "name",
       header: "Plans Name",
-      cell: ({ row }) => (
-        <div className="flex gap-2 items-center">
-          <Avatar className="h-16 w-16">
-            {/* <AvatarImage src={row.original.image} alt="product-image" /> */}
-            <AvatarFallback>{row.original.name.en.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <p>{row.getValue("name")}</p>
-        </div>
-      ),
+      cell: ({ row }) => {
+        // Ensure `name` and `name.en` exist before attempting to access `en`
+        const planName = row.original.name?.en || "Unnamed Plan"; // Fallback text in case `en` is undefined
+
+        return (
+          <div className="flex gap-2 items-center">
+            <Avatar className="h-16 w-16">
+              <AvatarFallback>{planName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <p>{planName}</p>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "description",
       header: "Category",
       cell: ({ row }) => {
-        const categories = row.original.description.en;
+        // Check for `description` and `description.en`
+        const categoryDescription =
+          row.original.description?.en || "No description";
 
         return (
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">{categories}</div>
+            <div className="flex gap-2 items-center">{categoryDescription}</div>
           </div>
         );
       },
@@ -102,7 +108,7 @@ export default function Plans() {
 
   // Search functionality
   const filteredData = plans?.filter((product: Plans) =>
-    product?.name?.en?.toLowerCase().includes(userSearch.toLowerCase())
+    product?.name?.en?.includes(userSearch)
   );
 
   const handleDelete = async (id: string) => {
@@ -130,7 +136,7 @@ export default function Plans() {
 
   return (
     <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
-      <PageTitle title="Products" />
+      <PageTitle title="Plans" />
       <Options
         haveSearch={true}
         searchValue={userSearch}
