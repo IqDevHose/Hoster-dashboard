@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 type Props = {};
 
-export default function Sidebar({ }: Props) {
+export default function Sidebar({}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -41,8 +41,9 @@ export default function Sidebar({ }: Props) {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 z-40 h-screen w-full md:w-64 bg-white shadow-md transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } md:translate-x-0`}
+        className={`fixed top-0 left-0 z-40 h-screen w-full md:w-64 bg-white shadow-md transition-transform duration-300 ease-in-out ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
         <div className="flex flex-col h-full p-4">
           <div className="flex-grow">
@@ -61,33 +62,37 @@ export default function Sidebar({ }: Props) {
                   variant: "ghost",
                 },
                 {
-                  title: "Products",
-                  href: "/products",
+                  title: "Plans",
+                  href: "/plans",
                   icon: ShoppingCart,
                   variant: "ghost",
                 },
                 {
-                  title: "Orders",
+                  title: "Subscriptions",
                   href: "/orders",
                   icon: ListCheck,
                   variant: "ghost",
                 },
-                {
-                  title: "Auctions",
-                  href: "/auctions",
-                  icon: Hammer,
-                  variant: "ghost",
-                },
-                {
-                  title: "Settings",
-                  href: "/settings",
-                  icon: Settings,
-                  variant: "ghost",
-                },
+                // {
+                //   title: "Auctions",
+                //   href: "/auctions",
+                //   icon: Hammer,
+                //   variant: "ghost",
+                // },
+                // {
+                //   title: "Settings",
+                //   href: "/settings",
+                //   icon: Settings,
+                //   variant: "ghost",
+                // },
               ]}
             />
           </div>
-          <Button onClick={handleLogout} variant="destructive" className="w-full flex items-center">
+          <Button
+            onClick={handleLogout}
+            variant="destructive"
+            className="w-full flex items-center"
+          >
             <span className="mr-2">
               <LogOut size={16} />
             </span>
