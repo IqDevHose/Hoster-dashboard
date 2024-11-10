@@ -29,7 +29,7 @@ export default function UsersPage() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
-    id: string;
+    id: number;
     name: string;
   } | null>(null);
 
@@ -45,7 +45,7 @@ export default function UsersPage() {
     queryKey: ["users"],
     queryFn: async () => {
       const res = await axiosInstance.get("/auth/users");
-      console.log("Fetched users:", res.data); // Log the fetched data
+      console.log("Fetched users:", res.data);
 
       return res.data;
     },
@@ -54,7 +54,7 @@ export default function UsersPage() {
   const currentUserId = localStorage.getItem("userId"); // Assume this hook gives us the current user's info
 
   // Function to handle deletion
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       await axiosInstance.delete(`/users/${id}`);
       setModalOpen(false); // Close modal after deletion
@@ -107,7 +107,7 @@ export default function UsersPage() {
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => {
-        const isCurrentUser = row.original.id === currentUserId;
+        const isCurrentUser = row.original.id === Number(currentUserId);
         return (
           <div className="flex items-center gap-1">
             <span>{row.getValue("name")}</span>
@@ -184,7 +184,7 @@ export default function UsersPage() {
 
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add Plan</span>
+              <span>Add User</span>
             </Button>
           </Link>,
         ]}

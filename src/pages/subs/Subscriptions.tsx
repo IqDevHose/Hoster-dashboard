@@ -42,70 +42,83 @@ export default function Subscriptions() {
   // Query to fetch products
   const queryClient = useQueryClient();
   const {
-    data: plans,
+    data: subscriptions,
     isPending,
     error,
   } = useQuery({
-    queryKey: ["plans"],
+    queryKey: ["subscriptions"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/plans");
-      console.log("Fetched plans:", res.data); // Log the fetched data
+      const res = await axiosInstance.get("/records-dashboard/subscriptions");
+      console.log("Fetched subscriptions:", res.data); // Log the fetched data
       return res.data;
     },
     refetchOnWindowFocus: true, // Automatically refetch on window focus
   });
 
   // Define the columns for the DataTable
-  const columns: ColumnDef<Plans>[] = [
+  const columns: ColumnDef<any>[] = [
     {
       accessorKey: "name",
-      header: "Plans Name",
+      header: "Domain",
       cell: ({ row }) => {
-        // Ensure `name` and `name.en` exist before attempting to access `en`
-        const planName = row.original.name?.en || "Unnamed Plan"; // Fallback text in case `en` is undefined
 
         return (
           <div className="flex gap-2 items-center">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback>{planName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <p>{planName}</p>
+            <p>{row.original.domain}</p>
           </div>
         );
       },
     },
     {
-      accessorKey: "description",
-      header: "Category",
+      accessorKey: "domainType",
+      header: "Domain Type",
       cell: ({ row }) => {
-        // Check for `description` and `description.en`
-        const categoryDescription =
-          row.original.description?.en || "No description";
-
         return (
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">{categoryDescription}</div>
+            <div className="flex gap-2 items-center">{row.original.domainType}</div>
           </div>
         );
       },
     },
-    
     {
-      accessorKey: "price",
-      header: "Price",
+      accessorKey: "plan",
+      header: "Plan",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
     },
     {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
+        const id = row.original.id; // Access the user's ID
+        const name = row.getValue("name") as string; // Access the user's name
 
         return (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 justify-center items-center">
-            <Link state={{}} to={`/edit-subscription/${row.original.id}`} className="hover:bg-slate-300 rounded-md transition ease-in-out p-2" >
-                <LucidePen size={17} className="text-gray-600"/>
+          <div className="flex gap-2">
+            {/* Link to Edit user */}
+            <Link to={`/edit-subscription/${id}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 hover:text-blue-600"
+              >
+                <PencilIcon className="h-4 w-4" />
+              </Button>
             </Link>
-            </div>
+            {/* Button to Delete user */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-500 hover:text-red-600"
+              // onClick={() => {
+              //   setSelectedPlan({ id, name }); // Set selected user for deletion
+              //   setModalOpen(true); // Open confirmation modal
+              // }}
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
           </div>
         );
       },
@@ -124,7 +137,7 @@ export default function Subscriptions() {
     );
 
   // Search functionality
-  const filteredData = plans?.filter((product: Plans) =>
+  const filteredData = subscriptions?.filter((product: Plans) =>
     product?.name?.en?.includes(userSearch)
   );
 
