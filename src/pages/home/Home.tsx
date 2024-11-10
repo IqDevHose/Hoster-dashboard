@@ -78,7 +78,7 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
+      {/* <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
         <CardContent>
           <p className="p-4 font-semibold">Revenue Overview (Bar Chart)</p>
           <BarChart />
@@ -87,9 +87,9 @@ export default function Home() {
           <p className="p-4 font-semibold">Revenue Trend (Line Chart)</p>
           <LineChart />
         </CardContent>
-      </section>
+      </section> */}
 
-      <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
+      {/* <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
         <CardContent className="flex gap-4">
           <section>
             <p>Recent Sales</p>
@@ -110,7 +110,7 @@ export default function Home() {
             )}
           </div>
         </CardContent>
-      </section>
+      </section> */}
     </div>
   );
 }

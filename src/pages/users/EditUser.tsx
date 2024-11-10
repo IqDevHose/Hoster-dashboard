@@ -224,9 +224,18 @@ const EditUser = () => {
           />
         </div>
 
-        <div className="flex justify-between items-center">
+        {/* <div className="flex justify-between items-center">
           <Button type="submit" variant="default" disabled={mutation.isPending}>
             {mutation.isPending ? <Spinner size="sm" /> : "Update User"}
+          </Button>
+        </div> */}
+
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => navigate("/users")}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="default" disabled={mutation.isPending}>
+            {mutation.isPending ? <Spinner size="sm" /> : "Save Changes"}
           </Button>
         </div>
       </form>

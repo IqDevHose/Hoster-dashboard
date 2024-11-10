@@ -76,7 +76,7 @@ export default function Plans() {
     },
     {
       accessorKey: "description",
-      header: "Category",
+      header: "Description",
       cell: ({ row }) => {
         // Check for `description` and `description.en`
         const categoryDescription =
@@ -97,6 +97,35 @@ export default function Plans() {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
+        const id = row.original.id; // Access the user's ID
+        const name = row.getValue("name") as string; // Access the user's name
+
+        return (
+          <div className="flex gap-2">
+            {/* Link to Edit user */}
+            <Link to={`/edit-plan/${id}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 hover:text-blue-600"
+              >
+                <PencilIcon className="h-4 w-4" />
+              </Button>
+            </Link>
+            {/* Button to Delete user */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-red-500 hover:text-red-600"
+              // onClick={() => {
+              //   setSelectedPlan({ id, name }); // Set selected user for deletion
+              //   setModalOpen(true); // Open confirmation modal
+              // }}
+            >
+              <TrashIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        );
 
         return (
           <div className="flex flex-col gap-2">
