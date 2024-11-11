@@ -10,6 +10,7 @@ import {
   X,
   LogOut,
   Hammer,
+  Shield
 } from "lucide-react";
 import { Button } from "./button";
 import { useNavigate } from "react-router-dom";
@@ -71,6 +72,12 @@ export default function Sidebar({}: Props) {
                   title: "Subscriptions",
                   href: "/subscriptions",
                   icon: ListCheck,
+                  variant: "ghost",
+                },
+                {
+                  title: "Admins",
+                  href: "/admins",
+                  icon: Shield,
                   variant: "ghost",
                 },
                 // {

@@ -26,6 +26,9 @@ import AddSubscription from "./pages/subs/AddSubscription";
 import Subscriptions from "./pages/subs/Subscriptions";
 import EditSubscription from "./pages/subs/EditSubscription";
 import Otp from "./pages/auth/Otp";
+import Admins from "./pages/admins/Admins";
+import AddAdmin from "./pages/admins/AddAdmin";
+import EditAdmin from "./pages/admins/EditAdmin";
 
 function App() {
   return (
@@ -41,6 +44,10 @@ function App() {
         <Route path="/users" element={<Users />} />
         <Route path="/new-user" element={<AddUser />} />
         <Route path="/edit-user/:id" element={<EditUser />} />
+
+        <Route path="/admins" element={<Admins />} />
+        <Route path="/new-admin" element={<AddAdmin />} />
+        <Route path="/edit-admin/:id" element={<EditAdmin />} />
 
         <Route path="/plans" element={<Plans />} />
         <Route path="/new-plan" element={<AddPlan />} />

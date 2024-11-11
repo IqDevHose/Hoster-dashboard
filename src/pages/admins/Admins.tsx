@@ -2,17 +2,20 @@ import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
+import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
 import Loading from "@/components/Loading";
 
 type User = {
+  avatar: null;
   birthDay: string;
   email: string;
   gender: "male";
@@ -22,7 +25,7 @@ type User = {
   type: string;
 };
 
-export default function UsersPage() {
+export default function Admins() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
@@ -41,6 +44,7 @@ export default function UsersPage() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
+      // change the endpoint to "/auth/admins"
       const res = await axiosInstance.get("/auth/users");
       console.log("Fetched users:", res.data);
 
@@ -81,8 +85,25 @@ export default function UsersPage() {
   );
   console.log(users);
 
-  // Define the columns for the table without "Image" and "Role"
+  // Define the columns for the table
   const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: "image",
+      header: "Image",
+      cell: ({ row }) => {
+        const imageData = row.getValue("image") as string;
+        return (
+          <div className="relative">
+            <Avatar>
+              <AvatarImage src={imageData} alt="user-image" />
+              <AvatarFallback>
+                {(row.getValue("name") as string)?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "name",
       header: "Name",
@@ -149,11 +170,12 @@ export default function UsersPage() {
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to="/new-user" key="add-user">
+          <Link to="/new-admin" key="add-user">
             {/* add plus icon */}
+
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add User</span>
+              <span>Add Admin</span>
             </Button>
           </Link>,
         ]}
@@ -162,7 +184,7 @@ export default function UsersPage() {
       <DataTable
         columns={columns}
         data={filteredData}
-        editLink={"/edit-user"} // Provide the base link for editing users
+        editLink={"/edit-admin"} // Provide the base link for editing users
         handleDelete={function (id: string): void {
           throw new Error("Function not implemented.");
         }}
