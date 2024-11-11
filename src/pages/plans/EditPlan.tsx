@@ -1,141 +1,195 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import PageTitle from "@/components/PageTitle";
+import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
-import Loading from "@/components/Loading";
+import Spinner from "@/components/Spinner";
 
-// Define the Plan type
-type Plan = {
-  id: string;
-  name: {
-    ar: string;
-    en: string;
-  };
-  price: string;
-  description: {
-    ar: string;
-    en: string;
-  };
-};
+// Define Zod schema for form validation
+const planSchema = z.object({
+  name: z.object({
+    en: z.string().min(2, "Name in English must be at least 2 characters"),
+    ar: z.string().min(2, "Name in Arabic must be at least 2 characters"),
+  }),
+  description: z.object({
+    en: z
+      .string()
+      .min(10, "Description in English must be at least 10 characters"),
+    ar: z
+      .string()
+      .min(10, "Description in Arabic must be at least 10 characters"),
+  }),
+  price: z.number(),
+});
 
-export default function EditPlan() {
-  const { id } = useParams<{ id: string }>(); // Extract the plan ID from the URL
+type FormData = z.infer<typeof planSchema>;
+
+const EditPlan = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [plan, setPlan] = useState<Plan | null>(null);
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch plan details on component mount
+  // Initialize the form with react-hook-form and Zod validation
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(planSchema),
+    defaultValues: {
+      name: { en: "", ar: "" },
+      description: { en: "", ar: "" },
+      price: 0,
+    },
+  });
+
   useEffect(() => {
-    const fetchPlan = async () => {
-      try {
-        const res = await axiosInstance.get(`/plans/${id}`);
-        setPlan(res.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Failed to load plan details");
-        setLoading(false);
-      }
-    };
-    fetchPlan();
-  }, [id]);
+    // If plan data exists in location state, use it; otherwise, fetch from API
+    if (location.state?.plan) {
+      reset(location.state.plan);
+      setLoading(false);
+    }
+  }, [id, location.state, reset]);
 
-  // Handle form changes
-  const handleChange = (field: keyof Plan, value: string) => {
-    setPlan((prev) => prev ? { ...prev, [field]: value } : prev);
-  };
-
-  const handleNameChange = (lang: "ar" | "en", value: string) => {
-    setPlan((prev) => prev ? { ...prev, name: { ...prev.name, [lang]: value } } : prev);
-  };
-
-  const handleDescriptionChange = (lang: "ar" | "en", value: string) => {
-    setPlan((prev) => prev ? { ...prev, description: { ...prev.description, [lang]: value } } : prev);
-  };
-
-  // Handle form submission
-  const handleSubmit = async () => {
+  const onSubmit = async (data: FormData) => {
     try {
-      await axiosInstance.put(`/plans/${id}`, plan); // Update the plan on the backend
-      navigate("/plans"); // Redirect to the plans page after saving
+      await axiosInstance.put(`/plans/${id}`, data);
+      navigate("/plans");
     } catch (err) {
       setError("Failed to update the plan");
     }
   };
 
-  // Render loading or error message
-  // if (loading) return <Loading />;
-  // if (error) return <div>{error}</div>;
+  // Loading and error state handling
+  if (loading) return <Spinner />;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-10">
       <PageTitle title="Edit Plan" />
-      <div className="flex flex-col gap-5 pt-5 w-full mx-auto">
-
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-5 pt-5 w-full mx-auto"
+      >
         {/* English Name */}
-        <label className="flex flex-col gap-1">
-          <span>Plan Name (English)</span>
-          <input
-            type="text"
-            value={plan?.name.en || ""}
-            onChange={(e) => handleNameChange("en", e.target.value)}
-            className="border  rounded p-2"
+        <div className="flex flex-col gap-2">
+          <label htmlFor="nameEn">Plan Name (English)</label>
+          <Controller
+            name="name.en"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="text"
+                className={`border rounded p-2 ${
+                  errors.name?.en ? "border-red-500" : ""
+                }`}
+              />
+            )}
           />
-        </label>
+          {errors.name?.en && (
+            <p className="text-red-500">{errors.name.en.message}</p>
+          )}
+        </div>
 
         {/* Arabic Name */}
-        <label className="flex flex-col gap-1">
-          <span>Plan Name (Arabic)</span>
-          <input
-            type="text"
-            value={plan?.name.ar || ""}
-            onChange={(e) => handleNameChange("ar", e.target.value)}
-            className="border rounded p-2"
+        <div className="flex flex-col gap-2">
+          <label htmlFor="nameAr">Plan Name (Arabic)</label>
+          <Controller
+            name="name.ar"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="text"
+                className={`border rounded p-2 ${
+                  errors.name?.ar ? "border-red-500" : ""
+                }`}
+              />
+            )}
           />
-        </label>
+          {errors.name?.ar && (
+            <p className="text-red-500">{errors.name.ar.message}</p>
+          )}
+        </div>
 
         {/* English Description */}
-        <label className="flex flex-col gap-1">
-          <span>Description (English)</span>
-          <textarea
-            value={plan?.description.en || ""}
-            onChange={(e) => handleDescriptionChange("en", e.target.value)}
-            className="border rounded p-2"
+        <div className="flex flex-col gap-2">
+          <label htmlFor="descriptionEn">Description (English)</label>
+          <Controller
+            name="description.en"
+            control={control}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                className={`border rounded p-2 ${
+                  errors.description?.en ? "border-red-500" : ""
+                }`}
+              />
+            )}
           />
-        </label>
+          {errors.description?.en && (
+            <p className="text-red-500">{errors.description.en.message}</p>
+          )}
+        </div>
 
         {/* Arabic Description */}
-        <label className="flex flex-col gap-1">
-          <span>Description (Arabic)</span>
-          <textarea
-            value={plan?.description.ar || ""}
-            onChange={(e) => handleDescriptionChange("ar", e.target.value)}
-            className="border rounded p-2"
+        <div className="flex flex-col gap-2">
+          <label htmlFor="descriptionAr">Description (Arabic)</label>
+          <Controller
+            name="description.ar"
+            control={control}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                className={`border rounded p-2 ${
+                  errors.description?.ar ? "border-red-500" : ""
+                }`}
+              />
+            )}
           />
-        </label>
+          {errors.description?.ar && (
+            <p className="text-red-500">{errors.description.ar.message}</p>
+          )}
+        </div>
 
         {/* Price */}
-        <label className="flex flex-col gap-1">
-          <span>Price</span>
-          <input
-            type="text"
-            value={plan?.price || ""}
-            onChange={(e) => handleChange("price", e.target.value)}
-            className="border rounded p-2"
+        <div className="flex flex-col gap-2">
+          <label htmlFor="price">Price</label>
+          <Controller
+            name="price"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="text"
+                className={`border rounded p-2 ${
+                  errors.price ? "border-red-500" : ""
+                }`}
+              />
+            )}
           />
-        </label>
+          {errors.price && (
+            <p className="text-red-500">{errors.price.message}</p>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => navigate("/plans")}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
-            Save Changes
-          </Button>
+          <Button type="submit">Save Changes</Button>
         </div>
-      </div>
+      </form>
     </div>
   );
-}
+};
+
+export default EditPlan;
