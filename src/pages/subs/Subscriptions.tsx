@@ -1,25 +1,26 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
-import { useQuery } from "@tanstack/react-query";
-import { ColumnDef } from "@tanstack/react-table";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { LucidePen, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
-type Category = {
-  id: string;
-  name: string;
-};
-
-// Define the Product type
+// Define the Plans type
 type Plans = {
   id: string;
   name: {
@@ -31,37 +32,61 @@ type Plans = {
     ar: string;
     en: string;
   };
+  status: RecordStatusEnum;
 };
 
-// Main component for ProductsPage
+// Enum for record status
+export enum RecordStatusEnum {
+  PENDING = "pending",
+  AVAILABLE = "available",
+  CANCELED = "canceled",
+  REJECTED = "rejected",
+  PAID = "paid",
+  ACTIVE = "active",
+  EXPIRED = "expired",
+}
+
+// Define groups for statuses
+const statusGroups = {
+  Active: [
+    RecordStatusEnum.AVAILABLE,
+    RecordStatusEnum.PAID,
+    RecordStatusEnum.ACTIVE,
+  ],
+  Inactive: [
+    RecordStatusEnum.PENDING,
+    RecordStatusEnum.CANCELED,
+    RecordStatusEnum.REJECTED,
+    RecordStatusEnum.EXPIRED,
+  ],
+};
+
 export default function Subscriptions() {
   const [userSearch, setUserSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<RecordStatusEnum | "">("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Plans | null>(null);
 
-  // Query to fetch products
   const queryClient = useQueryClient();
   const {
     data: subscriptions,
-    isPending,
+    isLoading,
+    isError,
     error,
   } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: async () => {
       const res = await axiosInstance.get("/records-dashboard/subscriptions");
-      console.log("Fetched subscriptions:", res.data); // Log the fetched data
       return res.data;
     },
-    refetchOnWindowFocus: true, // Automatically refetch on window focus
+    refetchOnWindowFocus: true,
   });
 
-  // Define the columns for the DataTable
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "name",
       header: "Domain",
       cell: ({ row }) => {
-
         return (
           <div className="flex gap-2 items-center">
             <p>{row.original.domain}</p>
@@ -85,8 +110,16 @@ export default function Subscriptions() {
       header: "Plan",
     },
     {
-      accessorKey: "status",
-      header: "Status",
+      accessorKey: "startDate",
+      header: "startDate",
+    },
+    {
+      accessorKey: "endDate",
+      header: "endDate",
+    },
+    {
+      accessorKey: "price",
+      header: "price",
     },
     {
       accessorKey: "actions",
@@ -94,31 +127,20 @@ export default function Subscriptions() {
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
         const name = row.getValue("name") as string; // Access the user's name
-
         return (
           <div className="flex gap-2">
-            {/* Link to Edit user */}
-            <Link to={`/edit-subscription/${id}`}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-blue-500 hover:text-blue-600"
-              >
-                <PencilIcon className="h-4 w-4" />
-              </Button>
+            <Link to={`/edit-subscription/${id}`} className="text-blue-600">
+              <PencilIcon className="w-5 h-5" />
             </Link>
-            {/* Button to Delete user */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-500 hover:text-red-600"
-              // onClick={() => {
-              //   setSelectedPlan({ id, name }); // Set selected user for deletion
-              //   setModalOpen(true); // Open confirmation modal
-              // }}
+            <button
+              onClick={() => {
+                setSelectedProduct(row.original);
+                setModalOpen(true);
+              }}
+              className="text-red-600"
             >
-              <TrashIcon className="h-4 w-4" />
-            </Button>
+              <TrashIcon className="w-5 h-5" />
+            </button>
           </div>
         );
       },
@@ -126,54 +148,50 @@ export default function Subscriptions() {
   ];
 
   // Loading state
-  if (isPending) return <Loading />;
+  if (isLoading) return <Loading />;
 
   // Error state
-  if (error)
+  if (isError) {
     return (
-      <div className="flex justify-center items-center h-full self-center mx-auto">
-        Error loading products
+      <div className="flex justify-center items-center h-full mx-auto text-red-500">
+        Error loading subscriptions:{" "}
+        {error instanceof Error ? error.message : "Unknown error"}
       </div>
     );
+  }
 
-  // Search functionality
-  const filteredData = subscriptions?.filter((product: Plans) =>
-    product?.name?.en?.includes(userSearch)
-  );
+  // Filter data
+  const filteredData = subscriptions?.filter((product: Plans) => {
+    const matchesSearch = product.name.en
+      .toLowerCase()
+      .includes(userSearch.toLowerCase());
+    const matchesStatus = statusFilter ? product.status === statusFilter : true;
+    return matchesSearch && matchesStatus;
+  });
 
+  // Handle delete action
   const handleDelete = async (id: string) => {
     try {
-      // Optionally fetch the product to confirm it exists
-      const response = await axiosInstance.get(`/product/${id}`);
-      if (!response.data) {
-        console.error("Product not found:", id);
-        return;
-      }
-
-      // Delete the product
-      await axiosInstance.delete(`/product/${id}`);
-
-      // Optionally update the local state to reflect the deletion
-      setModalOpen(false); // Close modal after deletion
-      setSelectedProduct(null); // Clear selected product
-
-      // Invalidate and refetch the products
-      queryClient.invalidateQueries({ queryKey: ["products"] }); // Refetch products to update the list
+      await axiosInstance.delete(`/subscriptions/${id}`);
+      setModalOpen(false);
+      setSelectedProduct(null);
+      queryClient.invalidateQueries({ queryKey: ["subscriptions"] });
     } catch (err) {
-      console.error("Failed to delete product:", err);
+      console.error("Failed to delete subscription:", err);
     }
   };
 
   return (
-    <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
+    <div className="flex flex-col overflow-hidden p-4 sm:p-6 lg:p-10 gap-5 w-full">
       <PageTitle title="Subscriptions" />
+
       <Options
         haveSearch={true}
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to={"/new-subscription"} key="add-product">
-            <Button variant={"default"} className="flex items-center gap-1">
+          <Link to="/new-subscription" key="add-subscription">
+            <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
               <span>Add Subscription</span>
             </Button>
@@ -181,29 +199,49 @@ export default function Subscriptions() {
         ]}
       />
 
+      <div className="flex gap-3 items-center mb-4">  
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as RecordStatusEnum | "")
+          }
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(statusGroups).map(([groupLabel, statuses]) => (
+              <SelectGroup key={groupLabel || ""}>
+                <SelectLabel>{groupLabel}</SelectLabel>
+                {statuses.map((status) => (
+                  <SelectItem key={status || ""} value={status || "em"}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+            <SelectItem defaultChecked value="all">All</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <DataTable
-        editLink="/edit-product"
-        columns={columns} // Pass columns directly
+        editLink="/edit-subscription"
+        columns={columns}
         data={filteredData}
-        handleDelete={function (id: string): void {
-          throw new Error("Function not implemented.");
+        handleDelete={(id: string) => {
+          setSelectedProduct(id);
+          setModalOpen(true);
         }}
       />
 
-      {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={modalOpen}
-        onClose={() => {
-          console.log("Closing modal");
-          setModalOpen(false);
-        }}
+        onClose={() => setModalOpen(false)}
         onConfirm={() => {
-          if (selectedProduct) {
-            console.log("Confirming deletion for:", selectedProduct);
-            handleDelete(selectedProduct.id);
-          }
+          if (selectedProduct) handleDelete(selectedProduct.id);
         }}
-        message={`Are you sure you want to delete the product "${selectedProduct?.name.en}"?`}
+        message={`Are you sure you want to delete the subscription "${selectedProduct?.name.en}"?`}
       />
     </div>
   );
