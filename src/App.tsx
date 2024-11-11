@@ -63,12 +63,6 @@ function App() {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/new-subscription" element={<AddSubscription />} />
         <Route path="/edit-subscription/:id" element={<EditSubscription />} />
-
-        {/* <Route path="/settings" element={<Settings />} /> */}
-
-        {/* <Route path="/auctions" element={<Auctions />} /> */}
-        {/* <Route path="/new-auction" element={<AddAuction />} />
-        <Route path="/edit-auction/:id" element={<EditAuction />} /> */}
       </Route>
 
       {/* Optional: Catch-all route for unmatched paths */}

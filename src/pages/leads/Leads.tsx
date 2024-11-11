@@ -119,12 +119,12 @@ export default function Leads() {
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
         const name = row.getValue("name") as string; // Access the user's name
-        console.log(row.original)
+        console.log(row.original);
 
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-admin/${id}`} state={{ user: row.original }}>
+            <Link to={`/edit-lead/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -134,7 +134,7 @@ export default function Leads() {
               </Button>
             </Link>
             {/* Button to Delete user */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="text-red-500 hover:text-red-600"
@@ -144,7 +144,7 @@ export default function Leads() {
               }}
             >
               <TrashIcon className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         );
       },
@@ -180,7 +180,7 @@ export default function Leads() {
       />
 
       {/* Confirmation Modal */}
-      <ConfirmationModal
+      {/* <ConfirmationModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onConfirm={() => {
@@ -189,7 +189,7 @@ export default function Leads() {
           }
         }}
         message={`Are you sure you want to delete user with name "${selectedUser?.name}"?`} // Updated message to use user's name
-      />
+      /> */}
     </div>
   );
 }

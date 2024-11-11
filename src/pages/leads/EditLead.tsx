@@ -10,11 +10,10 @@ import Spinner from "@/components/Spinner";
 import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 
-const schema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    phone: z.string().optional(),
-  })
+const schema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  phone: z.string().optional(),
+});
 
 type FormData = z.infer<typeof schema>;
 
@@ -108,7 +107,7 @@ const EditLead = () => {
           <Button type="submit" variant="default" disabled={mutation.isPending}>
             {mutation.isPending ? <Spinner size="sm" /> : "Save Changes"}
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/admins")}>
+          <Button variant="ghost" onClick={() => navigate("/leads")}>
             Cancel
           </Button>
         </div>
