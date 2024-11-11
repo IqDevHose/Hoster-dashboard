@@ -10,16 +10,15 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { LucidePen, PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type Category = {
   id: string;
   name: string;
 };
 
-// Define the Product type
+// Define the Plans type with advantages
 type Plans = {
   id: string;
   name: {
@@ -31,15 +30,18 @@ type Plans = {
     ar: string;
     en: string;
   };
+  advantages?: {
+    [key: string]: string; // Adjust based on the structure of `advantages`
+  };
 };
 
-// Main component for ProductsPage
+// Main component for PlansPage
 export default function Plans() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Plans | null>(null);
 
-  // Query to fetch products
+  // Query to fetch plans
   const queryClient = useQueryClient();
   const {
     data: plans,
@@ -59,10 +61,9 @@ export default function Plans() {
   const columns: ColumnDef<Plans>[] = [
     {
       accessorKey: "name",
-      header: "Plans Name",
+      header: "Plan Name",
       cell: ({ row }) => {
-        // Ensure `name` and `name.en` exist before attempting to access `en`
-        const planName = row.original.name?.en || "Unnamed Plan"; // Fallback text in case `en` is undefined
+        const planName = row.original.name?.en || "Unnamed Plan"; // Fallback text
 
         return (
           <div className="flex gap-2 items-center">
@@ -78,7 +79,6 @@ export default function Plans() {
       accessorKey: "description",
       header: "Description",
       cell: ({ row }) => {
-        // Check for `description` and `description.en`
         const categoryDescription =
           row.original.description?.en || "No description";
 
@@ -91,7 +91,6 @@ export default function Plans() {
         );
       },
     },
-
     {
       accessorKey: "price",
       header: "Price",
@@ -100,12 +99,11 @@ export default function Plans() {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const id = row.original.id; // Access the user's ID
-        const name = row.getValue("name") as string; // Access the user's name
+        const id = row.original.id; // Access the plan ID
 
         return (
           <div className="flex gap-2">
-            {/* Link to Edit user */}
+            {/* Link to Edit plan */}
             <Link to={`/edit-plan/${id}`} state={{ plan: row.original }}>
               <Button
                 variant="ghost"
@@ -115,15 +113,15 @@ export default function Plans() {
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {/* Button to Delete user */}
+            {/* Button to Delete plan */}
             <Button
               variant="ghost"
               size="icon"
               className="text-red-500 hover:text-red-600"
-              // onClick={() => {
-              //   setSelectedPlan({ id, name }); // Set selected user for deletion
-              //   setModalOpen(true); // Open confirmation modal
-              // }}
+              onClick={() => {
+                setSelectedProduct(row.original); // Set selected plan for deletion
+                setModalOpen(true); // Open confirmation modal
+              }}
             >
               <TrashIcon className="h-4 w-4" />
             </Button>
@@ -140,7 +138,7 @@ export default function Plans() {
   if (error)
     return (
       <div className="flex justify-center items-center h-full self-center mx-auto">
-        Error loading products
+        Error loading plans
       </div>
     );
 
@@ -151,24 +149,24 @@ export default function Plans() {
 
   const handleDelete = async (id: string) => {
     try {
-      // Optionally fetch the product to confirm it exists
+      // Optionally fetch the plan to confirm it exists
       const response = await axiosInstance.get(`/plans/${id}`);
       if (!response.data) {
-        console.error("Product not found:", id);
+        console.error("Plan not found:", id);
         return;
       }
 
-      // Delete the product
+      // Delete the plan
       await axiosInstance.delete(`/plans/${id}`);
 
       // Optionally update the local state to reflect the deletion
       setModalOpen(false); // Close modal after deletion
-      setSelectedProduct(null); // Clear selected product
+      setSelectedProduct(null); // Clear selected plan
 
-      // Invalidate and refetch the products
-      queryClient.invalidateQueries({ queryKey: ["products"] }); // Refetch products to update the list
+      // Invalidate and refetch the plans
+      queryClient.invalidateQueries({ queryKey: ["plans"] }); // Refetch plans to update the list
     } catch (err) {
-      console.error("Failed to delete product:", err);
+      console.error("Failed to delete plan:", err);
     }
   };
 
@@ -180,7 +178,7 @@ export default function Plans() {
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to={"/new-plan"} key="add-product">
+          <Link to={"/new-plan"} key="add-plan">
             <Button variant={"default"} className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
               <span>Add Plan</span>
@@ -190,12 +188,10 @@ export default function Plans() {
       />
 
       <DataTable
-        editLink="/edit-product"
+        editLink="/edit-plan"
         columns={columns} // Pass columns directly
         data={filteredData}
-        handleDelete={function (id: string): void {
-          throw new Error("Function not implemented.");
-        }}
+        handleDelete={handleDelete}
       />
 
       {/* Confirmation Modal */}
@@ -211,7 +207,7 @@ export default function Plans() {
             handleDelete(selectedProduct.id);
           }
         }}
-        message={`Are you sure you want to delete the product "${selectedProduct?.name.en}"?`}
+        message={`Are you sure you want to delete the plan "${selectedProduct?.name.en}"?`}
       />
     </div>
   );
