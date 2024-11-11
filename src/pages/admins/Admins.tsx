@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ type User = {
 };
 
 export default function Admins() {
+  const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
@@ -44,10 +45,8 @@ export default function Admins() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // change the endpoint to "/auth/admins"
-      const res = await axiosInstance.get("/auth/users");
-      console.log("Fetched users:", res.data);
-
+      const res = await axiosInstance.get("/auth/admins");
+      console.log("Fetched Admins:", res.data);
       return res.data;
     },
   });
@@ -57,7 +56,7 @@ export default function Admins() {
   // Function to handle deletion
   const handleDelete = async (id: number) => {
     try {
-      await axiosInstance.delete(`/users/${id}`);
+      await axiosInstance.delete(`/auth/admins/${id}`);
       setModalOpen(false); // Close modal after deletion
       setSelectedUser(null); // Clear selected user
       queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users to update the list
@@ -88,23 +87,6 @@ export default function Admins() {
   // Define the columns for the table
   const columns: ColumnDef<User>[] = [
     {
-      accessorKey: "image",
-      header: "Image",
-      cell: ({ row }) => {
-        const imageData = row.getValue("image") as string;
-        return (
-          <div className="relative">
-            <Avatar>
-              <AvatarImage src={imageData} alt="user-image" />
-              <AvatarFallback>
-                {(row.getValue("name") as string)?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "name",
       header: "Name",
       cell: ({ row }) => {
@@ -118,10 +100,6 @@ export default function Admins() {
       },
     },
     {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
       accessorKey: "phone",
       header: "Phone",
     },
@@ -131,11 +109,12 @@ export default function Admins() {
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
         const name = row.getValue("name") as string; // Access the user's name
+        console.log(row.original)
 
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-user/${id}`} state={{ user: row.original }}>
+            <Link to={`/edit-admin/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -164,7 +143,7 @@ export default function Admins() {
 
   return (
     <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
-      <PageTitle title="Users" />
+      <PageTitle title="Admins" />
       <Options
         haveSearch={true}
         searchValue={userSearch}
