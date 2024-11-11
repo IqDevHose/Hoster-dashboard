@@ -25,7 +25,7 @@ type User = {
   type: string;
 };
 
-export default function UsersPage() {
+export default function Admins() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
@@ -44,6 +44,7 @@ export default function UsersPage() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
+      // change the endpoint to "/auth/admins"
       const res = await axiosInstance.get("/auth/users");
       console.log("Fetched users:", res.data);
 
@@ -124,16 +125,6 @@ export default function UsersPage() {
       accessorKey: "phone",
       header: "Phone",
     },
-    // {
-    //   accessorKey: "type",
-    //   header: "Role",
-    //   cell: ({ row }) => {
-    //     const role = row.getValue("type") as string;
-    //     return (
-    //       <Badge variant={role === "admin" ? "blue" : "default"}>{role}</Badge>
-    //     );
-    //   },
-    // },
     {
       accessorKey: "actions",
       header: "Actions",
@@ -179,12 +170,12 @@ export default function UsersPage() {
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to="/new-user" key="add-user">
+          <Link to="/new-admin" key="add-user">
             {/* add plus icon */}
 
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add User</span>
+              <span>Add Admin</span>
             </Button>
           </Link>,
         ]}
@@ -193,7 +184,7 @@ export default function UsersPage() {
       <DataTable
         columns={columns}
         data={filteredData}
-        editLink={"/edit-user"} // Provide the base link for editing users
+        editLink={"/edit-admin"} // Provide the base link for editing users
         handleDelete={function (id: string): void {
           throw new Error("Function not implemented.");
         }}
