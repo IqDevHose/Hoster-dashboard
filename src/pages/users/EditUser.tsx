@@ -17,26 +17,16 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, EyeOff } from "lucide-react";
 
-const schema = z
-  .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().optional(),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .optional()
-      .or(z.literal("")),
-    confirm: z.string().optional().or(z.literal("")),
-    role: z.enum(["ADMIN", "USER"]),
-    image: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirm, {
-    message: "Passwords do not match",
-    path: ["confirm"],
-  });
+const schema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+  birthDay: z.string().optional(), // Birthday is optional for flexibility
+  gender: z.enum(["Male", "Female"]),
+
+  image: z.string().optional(),
+});
 
 type FormData = z.infer<typeof schema>;
 
@@ -46,8 +36,6 @@ const EditUser = () => {
   const location = useLocation();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     control,
@@ -57,9 +45,7 @@ const EditUser = () => {
     setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      role: "USER",
-    },
+    defaultValues: {},
   });
 
   useEffect(() => {
@@ -69,7 +55,8 @@ const EditUser = () => {
         name: user.name,
         email: user.email,
         phone: user.phone || "",
-        role: user.role,
+        birthDay: user.birthDay || "",
+        gender: user.gender || "Male",
       });
       setImagePreview(user.image || null);
     }
@@ -77,8 +64,7 @@ const EditUser = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const { confirm, ...dataToSend } = data;
-      return await axiosInstance.put(`/auth/users/${id}`, dataToSend);
+      return await axiosInstance.put(`/auth/users/${id}`, data);
     },
     onSuccess: () => {
       navigate("/users");
@@ -99,7 +85,8 @@ const EditUser = () => {
   };
 
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    // mutation.mutate(data);
+    console.log(data);
   };
 
   return (
@@ -109,6 +96,7 @@ const EditUser = () => {
         <div className="text-red-500">{(mutation.error as Error).message}</div>
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        {/* Name Field */}
         <div className="flex flex-col gap-2">
           <label htmlFor="name">Name</label>
           <Controller
@@ -127,6 +115,7 @@ const EditUser = () => {
           {errors.name && <p className="text-red-500">{errors.name.message}</p>}
         </div>
 
+        {/* Email Field */}
         <div className="flex flex-col gap-2">
           <label htmlFor="email">Email</label>
           <Controller
@@ -147,6 +136,7 @@ const EditUser = () => {
           )}
         </div>
 
+        {/* Phone Field */}
         <div className="flex flex-col gap-2">
           <label htmlFor="phone">Phone</label>
           <Controller
@@ -167,94 +157,51 @@ const EditUser = () => {
           )}
         </div>
 
-        {/* <div className="flex flex-col gap-2">
-          <label htmlFor="password">
-            New Password (leave blank if not changing)
-          </label>
-          <div className="relative">
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  disabled={mutation.isPending}
-                  className={`${errors.password ? "border-red-500" : ""} pr-10`}
-                />
-              )}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-500" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-500" />
-              )}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-red-500">{errors.password.message}</p>
-          )}
-        </div> */}
-
-        {/* <div className="flex flex-col gap-2">
-          <label htmlFor="confirm">Confirm New Password</label>
-          <div className="relative">
-            <Controller
-              name="confirm"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  id="confirm"
-                  type={showConfirmPassword ? "text" : "password"}
-                  disabled={mutation.isPending}
-                  className={`${errors.confirm ? "border-red-500" : ""} pr-10`}
-                />
-              )}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4 text-gray-500" />
-              ) : (
-                <Eye className="h-4 w-4 text-gray-500" />
-              )}
-            </button>
-          </div>
-          {errors.confirm && (
-            <p className="text-red-500">{errors.confirm.message}</p>
-          )}
-        </div> */}
-
+        {/* Birthday Field */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="role">Role</label>
+          <label htmlFor="birthDay">Birthday</label>
           <Controller
-            name="role"
+            name="birthDay"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="birthDay"
+                type="date"
+                disabled={mutation.isPending}
+                className={`${errors.birthDay ? "border-red-500" : ""}`}
+              />
+            )}
+          />
+          {errors.birthDay && (
+            <p className="text-red-500">{errors.birthDay.message}</p>
+          )}
+        </div>
+
+        {/* Gender Field */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="gender">Gender</label>
+          <Controller
+            name="gender"
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a role" />
+                  <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USER">User</SelectItem>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
                 </SelectContent>
               </Select>
             )}
           />
-          {errors.role && <p className="text-red-500">{errors.role.message}</p>}
+          {errors.gender && (
+            <p className="text-red-500">{errors.gender.message}</p>
+          )}
         </div>
 
+        {/* Profile Image Field */}
         <div className="flex flex-col gap-2">
           {imagePreview && (
             <Avatar className="w-24 h-24">
@@ -273,12 +220,7 @@ const EditUser = () => {
           />
         </div>
 
-        {/* <div className="flex justify-between items-center">
-          <Button type="submit" variant="default" disabled={mutation.isPending}>
-            {mutation.isPending ? <Spinner size="sm" /> : "Update User"}
-          </Button>
-        </div> */}
-
+        {/* Submit Buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => navigate("/users")}>
             Cancel

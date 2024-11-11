@@ -2,17 +2,20 @@ import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
+import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
 import Loading from "@/components/Loading";
 
 type User = {
+  avatar: null;
   birthDay: string;
   email: string;
   gender: "male";
@@ -81,8 +84,25 @@ export default function UsersPage() {
   );
   console.log(users);
 
-  // Define the columns for the table without "Image" and "Role"
+  // Define the columns for the table
   const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: "image",
+      header: "Avatar",
+      cell: ({ row }) => {
+        const imageData = row.getValue("image") as string;
+        return (
+          <div className="relative">
+            <Avatar>
+              <AvatarImage src={imageData} alt="user-image" />
+              <AvatarFallback>
+                {(row.getValue("name") as string)?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "name",
       header: "Name",
@@ -104,6 +124,7 @@ export default function UsersPage() {
       accessorKey: "phone",
       header: "Phone",
     },
+
     {
       accessorKey: "actions",
       header: "Actions",
@@ -151,6 +172,7 @@ export default function UsersPage() {
         buttons={[
           <Link to="/new-user" key="add-user">
             {/* add plus icon */}
+
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
               <span>Add User</span>
