@@ -7,6 +7,7 @@ import PageTitle from "@/components/PageTitle";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
+import { useMutation } from "@tanstack/react-query";
 
 // Define Zod schema for form validation
 const planSchema = z.object({
@@ -78,13 +79,18 @@ const EditPlan = () => {
     }
   }, [id, location.state, reset]);
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      await axiosInstance.put(`/plans/${id}`, data);
+  const mutation = useMutation({
+    mutationFn: (data: FormData) => axiosInstance.put(`/plans/${id}`, data),
+    onSuccess: () => {
       navigate("/plans");
-    } catch (err) {
+    },
+    onError: (error) => {
       setError("Failed to update the plan");
-    }
+    },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    mutation.mutate(data);
   };
 
   if (loading) return <Spinner />;
@@ -163,7 +169,6 @@ const EditPlan = () => {
           {advantagesFields.map((advantage, index) => (
             <div key={advantage.id} className="flex gap-4 items-center">
               <div className="flex-1">
-                {/* <label htmlFor={`advantages.${index}.name.en`}>Advantage (English)</label> */}
                 <Controller
                   name={`advantages.${index}.name.en`}
                   control={control}
@@ -177,7 +182,6 @@ const EditPlan = () => {
               </div>
 
               <div className="flex-1">
-                {/* <label htmlFor={`advantages.${index}.name.ar`}>Advantage (Arabic)</label> */}
                 <Controller
                   name={`advantages.${index}.name.ar`}
                   control={control}
@@ -196,7 +200,7 @@ const EditPlan = () => {
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => navigate("/plans")}>Cancel</Button>
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" disabled={mutation.isPending}>Save Changes</Button>
         </div>
       </form>
     </div>

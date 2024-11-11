@@ -50,7 +50,7 @@ const AddPlan: React.FC = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => axiosInstance.post(`/plan`, data),
+    mutationFn: (data: FormData) => axiosInstance.post(`/plans`, data),
     onError: () => setError("Failed to add Plan"),
     onSuccess: () => {
       navigate("/plans");
