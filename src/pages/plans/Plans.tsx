@@ -83,12 +83,15 @@ export default function Plans() {
           row.original.description?.en || "No description";
 
         return (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">{categoryDescription}</div>
+          <div className="truncate w-32">
+            <span className="block overflow-hidden whitespace-nowrap text-ellipsis">
+              {categoryDescription}
+            </span>
           </div>
         );
       },
     },
+
     {
       accessorKey: "price",
       header: "Price",
