@@ -43,10 +43,10 @@ export default function Leads() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["records"],
     queryFn: async () => {
       const res = await axiosInstance.get("/records-dashboard");
-      console.log("Fetched Admins:", res.data);
+      console.log("Fetched Leads:", res.data);
       return res.data;
     },
   });

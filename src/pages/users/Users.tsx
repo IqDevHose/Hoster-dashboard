@@ -2,7 +2,6 @@ import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
-import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
