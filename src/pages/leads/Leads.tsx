@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,8 @@ type User = {
   type: string;
 };
 
-export default function UsersPage() {
+export default function Leads() {
+  const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{
@@ -38,15 +39,14 @@ export default function UsersPage() {
 
   // Query to fetch users
   const {
-    data: users,
+    data: records,
     isLoading,
     error,
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/auth/users");
-      console.log("Fetched users:", res.data);
-
+      const res = await axiosInstance.get("/records-dashboard");
+      console.log("Fetched Admins:", res.data);
       return res.data;
     },
   });
@@ -55,14 +55,14 @@ export default function UsersPage() {
 
   // Function to handle deletion
   const handleDelete = async (id: number) => {
-    try {
-      await axiosInstance.delete(`/auth/users/${id}`);
-      setModalOpen(false); // Close modal after deletion
-      setSelectedUser(null); // Clear selected user
-      queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users to update the list
-    } catch (err) {
-      console.error("Failed to delete user:", err);
-    }
+    // try {
+    //   await axiosInstance.delete(`/auth/admins/${id}`);
+    //   setModalOpen(false); // Close modal after deletion
+    //   setSelectedUser(null); // Clear selected user
+    //   queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users to update the list
+    // } catch (err) {
+    //   console.error("Failed to delete user:", err);
+    // }
   };
 
   // Loading state
@@ -76,66 +76,55 @@ export default function UsersPage() {
     );
 
   // Filter users based on search input
-  const filteredData = users?.data?.filter(
-    (user: User) =>
-      user?.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      user?.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      user?.phone?.includes(userSearch)
+  const filteredData = records?.data?.filter(
+    (record: any) =>
+      record?.applicantName?.toLowerCase().includes(userSearch.toLowerCase()) ||
+      record?.domain?.toLowerCase().includes(userSearch.toLowerCase())
   );
-  console.log(users);
 
   // Define the columns for the table
-  const columns: ColumnDef<User>[] = [
+  const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "image",
-      header: "Avatar",
-      cell: ({ row }) => {
-        const imageData = row.getValue("image") as string;
-        return (
-          <div className="relative">
-            <Avatar>
-              <AvatarImage src={imageData} alt="user-image" />
-              <AvatarFallback>
-                {(row.getValue("name") as string)?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "name",
+      accessorKey: "applicantName",
       header: "Name",
       cell: ({ row }) => {
         const isCurrentUser = row.original.id === Number(currentUserId);
         return (
           <div className="flex items-center gap-1">
-            <span>{row.getValue("name")}</span>
+            <span>{row.getValue("applicantName")}</span>
             {isCurrentUser && <Badge variant="outline">Me</Badge>}
           </div>
         );
       },
     },
     {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "phone",
+      accessorKey: "applicantPhone",
       header: "Phone",
     },
-
+    {
+      accessorKey: "domain",
+      header: "Domain",
+    },
+    {
+      accessorKey: "domainType",
+      header: "Domain Type",
+    },
+    {
+      accessorKey: "domainPurpose",
+      header: "Purpose",
+    },
     {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
         const name = row.getValue("name") as string; // Access the user's name
+        console.log(row.original)
 
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-user/${id}`} state={{ user: row.original }}>
+            <Link to={`/edit-admin/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -164,18 +153,18 @@ export default function UsersPage() {
 
   return (
     <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
-      <PageTitle title="Users" />
+      <PageTitle title="Leads" />
       <Options
         haveSearch={true}
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to="/new-user" key="add-user">
+          <Link to="/new-lead" key="add-user">
             {/* add plus icon */}
 
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add User</span>
+              <span>Add Lead</span>
             </Button>
           </Link>,
         ]}
@@ -183,8 +172,8 @@ export default function UsersPage() {
       {/* Pass the filtered data to the DataTable */}
       <DataTable
         columns={columns}
-        data={filteredData}
-        editLink={"/edit-user"} // Provide the base link for editing users
+        data={records || []}
+        editLink={"/edit-lead"} // Provide the base link for editing users
         handleDelete={function (id: string): void {
           throw new Error("Function not implemented.");
         }}

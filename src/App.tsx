@@ -29,6 +29,9 @@ import Otp from "./pages/auth/Otp";
 import Admins from "./pages/admins/Admins";
 import AddAdmin from "./pages/admins/AddAdmin";
 import EditAdmin from "./pages/admins/EditAdmin";
+import Leads from "./pages/leads/Leads";
+import AddLead from "./pages/leads/AddLead";
+import EditLead from "./pages/leads/EditLead";
 
 function App() {
   return (
@@ -48,6 +51,10 @@ function App() {
         <Route path="/admins" element={<Admins />} />
         <Route path="/new-admin" element={<AddAdmin />} />
         <Route path="/edit-admin/:id" element={<EditAdmin />} />
+
+        <Route path="/leads" element={<Leads />} />
+        <Route path="/new-lead" element={<AddLead />} />
+        <Route path="/edit-lead/:id" element={<EditLead />} />
 
         <Route path="/plans" element={<Plans />} />
         <Route path="/new-plan" element={<AddPlan />} />

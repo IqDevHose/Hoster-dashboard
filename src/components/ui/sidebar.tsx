@@ -10,7 +10,8 @@ import {
   X,
   LogOut,
   Hammer,
-  Shield
+  Shield,
+  Star
 } from "lucide-react";
 import { Button } from "./button";
 import { useNavigate } from "react-router-dom";
@@ -60,6 +61,12 @@ export default function Sidebar({}: Props) {
                   title: "Users",
                   href: "/users",
                   icon: UsersRound,
+                  variant: "ghost",
+                },
+                {
+                  title: "Leads",
+                  href: "/leads",
+                  icon: Star,
                   variant: "ghost",
                 },
                 {
