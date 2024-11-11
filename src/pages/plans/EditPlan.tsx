@@ -198,9 +198,9 @@ const EditPlan = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => navigate("/plans")}>Cancel</Button>
+        <div className="flex justify-start gap-2">
           <Button type="submit" disabled={mutation.isPending}>Save Changes</Button>
+          <Button variant="ghost" onClick={() => navigate("/plans")}>Cancel</Button>
         </div>
       </form>
     </div>

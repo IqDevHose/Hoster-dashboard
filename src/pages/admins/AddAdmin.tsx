@@ -11,7 +11,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, PlusIcon } from "lucide-react";
 
 const schema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),

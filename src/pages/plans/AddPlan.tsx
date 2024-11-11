@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
 import { useMutation } from "@tanstack/react-query";
+import { PlusIcon } from "lucide-react";
 
 // Define Zod schema for form validation
 const planSchema = z.object({
@@ -199,9 +200,14 @@ const AddPlan: React.FC = () => {
         {error && <div className="text-red-500">{error}</div>}
 
         {/* Submit Button */}
-        <Button type="submit" variant="outline" disabled={mutation.isPending}>
-          {mutation.isPending ? <Spinner size="sm" /> : "Submit Plan"}
-        </Button>
+        <div className="flex justify-start gap-2">
+
+          <Button type="submit" className="flex items-center gap-1" variant="default" disabled={mutation.isPending}>
+              <PlusIcon className="w-4 h-4" />
+            {mutation.isPending ? <Spinner size="sm" /> : "Add Plan"}
+          </Button>
+          <Button variant="ghost" onClick={() => navigate("/plans")}>Cancel</Button>
+        </div>
       </form>
     </div>
   );
