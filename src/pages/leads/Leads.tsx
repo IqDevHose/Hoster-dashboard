@@ -133,18 +133,6 @@ export default function Leads() {
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {/* Button to Delete user */}
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-500 hover:text-red-600"
-              onClick={() => {
-                setSelectedUser({ id, name }); // Set selected user for deletion
-                setModalOpen(true); // Open confirmation modal
-              }}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </Button> */}
           </div>
         );
       },
@@ -160,8 +148,6 @@ export default function Leads() {
         setSearchValue={setUserSearch}
         buttons={[
           <Link to="/new-lead" key="add-user">
-            {/* add plus icon */}
-
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
               <span>Add Lead</span>
