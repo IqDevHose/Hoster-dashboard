@@ -10,9 +10,8 @@ import Spinner from "@/components/Spinner";
 import { useMutation } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 
-// Define Zod schema for form validation
 const planSchema = z.object({
-  name: z.object({
+  title: z.object({
     en: z.string().min(2, "Name in English must be at least 2 characters"),
     ar: z.string().min(2, "Name in Arabic must be at least 2 characters"),
   }),
@@ -20,20 +19,27 @@ const planSchema = z.object({
     en: z.string().min(10, "Description in English must be at least 10 characters"),
     ar: z.string().min(10, "Description in Arabic must be at least 10 characters"),
   }),
-  price: z.number(),
-  advantages: z.array(
-    z.object({
-      en: z.string().min(1, "Advantage in English is required"),
-      ar: z.string().min(1, "Advantage in Arabic is required"),
-    })
-  ).optional(),
+  price: z
+    .string()
+    .transform((val) => parseFloat(val))
+    .refine((val) => !isNaN(val), "Price must be a valid number"),
+    advantages: z
+    .array(
+      z.object({
+        name: z.object({
+          en: z.string().min(1, "Advantage in English is required"),
+          ar: z.string().min(1, "Advantage in Arabic is required"),
+        }),
+      })
+    )
+    .optional(),
 });
 
 type FormData = z.infer<typeof planSchema>;
 
 const AddPlan: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
-  const [advantages, setAdvantages] = useState<{ en: string; ar: string }[]>([]);
+  const [advantages, setAdvantages] = useState<{ name: { en: string; ar: string } }[]>([]);
   const navigate = useNavigate();
 
   const {
@@ -44,14 +50,14 @@ const AddPlan: React.FC = () => {
   } = useForm<FormData>({
     resolver: zodResolver(planSchema),
     defaultValues: {
-      name: { en: "", ar: "" },
+      title: { en: "", ar: "" },
       description: { en: "", ar: "" },
       price: 0,
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => axiosInstance.post(`/plans`, data),
+    mutationFn: (data: FormData) => axiosInstance.post(`/plans-dashboard`, data),
     onError: () => setError("Failed to add Plan"),
     onSuccess: () => {
       navigate("/plans");
@@ -61,17 +67,37 @@ const AddPlan: React.FC = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    setError(null); // Clear previous errors
-    mutation.mutate({ ...data, advantages });
-  };
+    setError(null);
+
+    // Ensure title and description are not empty
+    if (!data.title.en || !data.title.ar || !data.description.en || !data.description.ar) {
+      setError("Please fill in both English and Arabic title and description fields.");
+      return;
+    }
+  
+    // Filter out advantages with empty `en` or `ar` values
+    const filteredAdvantages = advantages.filter(
+      (advantage) => advantage.name.en.trim() && advantage.name.ar.trim()
+    );
+  
+    if (filteredAdvantages.length < advantages.length) {
+      setError("Please fill in all advantage fields.");
+      return;
+    }
+  
+    // Log the advantages data for debugging
+    console.log("Formatted Advantages: ", filteredAdvantages);
+  
+    const formattedData = { ...data, price: Number(data.price), advantages: filteredAdvantages };
+    mutation.mutate(formattedData);  };
 
   const addAdvantage = () => {
-    setAdvantages([...advantages, { en: "", ar: "" }]);
+    setAdvantages([...advantages, { name: { en: "", ar: "" } }]);
   };
 
   const handleAdvantageChange = (index: number, language: "en" | "ar", value: string) => {
     const updatedAdvantages = [...advantages];
-    updatedAdvantages[index][language] = value;
+    updatedAdvantages[index].name[language] = value;
     setAdvantages(updatedAdvantages);
   };
 
@@ -82,40 +108,40 @@ const AddPlan: React.FC = () => {
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      <PageTitle title="Add Plan" />
+      <PageTitle title="Add Product" />
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* English Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="nameEn">Plan Name (English)</label>
+          <label htmlFor="nameEn">Product Name (English)</label>
           <Controller
-            name="name.en"
+            name="title.en"
             control={control}
             render={({ field }) => (
               <input
                 {...field}
                 type="text"
-                className={`border rounded p-2 ${errors.name?.en ? "border-red-500" : ""}`}
+                className={`border rounded p-2 ${errors.title?.en ? "border-red-500" : ""}`}
               />
             )}
           />
-          {errors.name?.en && <p className="text-red-500">{errors.name.en.message}</p>}
+          {errors.title?.en && <p className="text-red-500">{errors.title.en.message}</p>}
         </div>
 
         {/* Arabic Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="nameAr">Plan Name (Arabic)</label>
+          <label htmlFor="nameAr">Product Name (Arabic)</label>
           <Controller
-            name="name.ar"
+            name="title.ar"
             control={control}
             render={({ field }) => (
               <input
                 {...field}
                 type="text"
-                className={`border rounded p-2 ${errors.name?.ar ? "border-red-500" : ""}`}
+                className={`border rounded p-2 ${errors.title?.ar ? "border-red-500" : ""}`}
               />
             )}
           />
-          {errors.name?.ar && <p className="text-red-500">{errors.name.ar.message}</p>}
+          {errors.title?.ar && <p className="text-red-500">{errors.title.ar.message}</p>}
         </div>
 
         {/* English Description */}
@@ -175,14 +201,14 @@ const AddPlan: React.FC = () => {
               <input
                 type="text"
                 placeholder="Advantage (English)"
-                value={advantage.en}
+                value={advantage.name.en}
                 onChange={(e) => handleAdvantageChange(index, "en", e.target.value)}
                 className="border rounded p-2 w-full"
               />
               <input
                 type="text"
                 placeholder="Advantage (Arabic)"
-                value={advantage.ar}
+                value={advantage.name.ar}
                 onChange={(e) => handleAdvantageChange(index, "ar", e.target.value)}
                 className="border rounded p-2 w-full"
               />
@@ -201,12 +227,11 @@ const AddPlan: React.FC = () => {
 
         {/* Submit Button */}
         <div className="flex justify-start gap-2">
-
           <Button type="submit" className="flex items-center gap-1" variant="default" disabled={mutation.isPending}>
-              <PlusIcon className="w-4 h-4" />
-            {mutation.isPending ? <Spinner size="sm" /> : "Add Plan"}
+            <PlusIcon className="w-4 h-4" />
+            {mutation.isPending ? <Spinner size="sm" /> : "Add Product"}
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/plans")}>Cancel</Button>
+          <Button variant="ghost" onClick={() => navigate("/products")}>Cancel</Button>
         </div>
       </form>
     </div>

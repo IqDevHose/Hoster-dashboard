@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, PlusIcon, TrashIcon, Power } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type Category = {
@@ -39,7 +39,7 @@ type Plans = {
 export default function Plans() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Plans | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
 
   // Query to fetch plans
   const queryClient = useQueryClient();
@@ -50,20 +50,19 @@ export default function Plans() {
   } = useQuery({
     queryKey: ["plans"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/plans");
-      console.log("Fetched plans:", res.data); // Log the fetched data
+      const res = await axiosInstance.get("/plans-dashboard");
       return res.data;
     },
     refetchOnWindowFocus: true, // Automatically refetch on window focus
   });
 
   // Define the columns for the DataTable
-  const columns: ColumnDef<Plans>[] = [
+  const columns: ColumnDef<any>[] = [
     {
       accessorKey: "name",
       header: "Plan Name",
       cell: ({ row }) => {
-        const planName = row.original.name?.en || "Unnamed Plan"; // Fallback text
+        const planName = row.original?.title?.en || "Unnamed Plan"; // Fallback text
 
         return (
           <div className="flex gap-2 items-center">
@@ -101,10 +100,12 @@ export default function Plans() {
       cell: ({ row }) => {
         const id = row.original.id; // Access the plan ID
 
+        const isActive = row.original.isActive;
+
         return (
           <div className="flex gap-2">
             {/* Link to Edit plan */}
-            <Link to={`/edit-plan/${id}`} state={{ plan: row.original }}>
+            <Link to={`/edit-product/${id}`} state={{ plan: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -117,13 +118,13 @@ export default function Plans() {
             <Button
               variant="ghost"
               size="icon"
-              className="text-red-500 hover:text-red-600"
+              className={`${isActive ? "bg-green-600 hover:bg-green-600/95" : "bg-red-600 hover:bg-red-600/95"}  text-white hover:text-white`}
               onClick={() => {
                 setSelectedProduct(row.original); // Set selected plan for deletion
                 setModalOpen(true); // Open confirmation modal
               }}
             >
-              <TrashIcon className="h-4 w-4" />
+              <Power className="h-4 w-4" />
             </Button>
           </div>
         );
@@ -138,26 +139,26 @@ export default function Plans() {
   if (error)
     return (
       <div className="flex justify-center items-center h-full self-center mx-auto">
-        Error loading plans
+        Error loading product 
       </div>
     );
 
   // Search functionality
-  const filteredData = plans?.filter((product: Plans) =>
-    product?.name?.en?.includes(userSearch)
+  const filteredData = plans.data?.filter((product: any) =>
+    product?.title?.en?.includes(userSearch)
   );
 
-  const handleDelete = async (id: string) => {
+  const handleDeactivate = async (id: string) => {
     try {
       // Optionally fetch the plan to confirm it exists
-      const response = await axiosInstance.get(`/plans/${id}`);
+      const response = await axiosInstance.get(`/plans-dashboard/${id}`);
       if (!response.data) {
-        console.error("Plan not found:", id);
+        console.error("Product not found:", id);
         return;
       }
 
       // Delete the plan
-      await axiosInstance.delete(`/plans/${id}`);
+      await axiosInstance.put(`/plans-dashboard/${id}/toggle-active`);
 
       // Optionally update the local state to reflect the deletion
       setModalOpen(false); // Close modal after deletion
@@ -172,42 +173,42 @@ export default function Plans() {
 
   return (
     <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
-      <PageTitle title="Plans" />
+      <PageTitle title="Products" />
       <Options
         haveSearch={true}
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to={"/new-plan"} key="add-plan">
+          <Link to={"/new-product"} key="add-product">
             <Button variant={"default"} className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add Plan</span>
+              <span>Add Product</span>
             </Button>
           </Link>,
         ]}
       />
 
       <DataTable
-        editLink="/edit-plan"
+        editLink="/edit-product"
         columns={columns} // Pass columns directly
         data={filteredData}
-        handleDelete={handleDelete}
+        handleDelete={handleDeactivate}
       />
 
       {/* Confirmation Modal */}
       <ConfirmationModal
+        alertTitle="Confirm Deactivation"
+        actionBtnText="Deactivate"
         isOpen={modalOpen}
         onClose={() => {
-          console.log("Closing modal");
           setModalOpen(false);
         }}
         onConfirm={() => {
           if (selectedProduct) {
-            console.log("Confirming deletion for:", selectedProduct);
-            handleDelete(selectedProduct.id);
+            handleDeactivate(selectedProduct.id);
           }
         }}
-        message={`Are you sure you want to delete the plan "${selectedProduct?.name.en}"?`}
+        message={`Are you sure you want to deactivate the product "${selectedProduct?.title.en}"?`}
       />
     </div>
   );

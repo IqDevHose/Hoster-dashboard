@@ -77,6 +77,7 @@ export default function Subscriptions() {
     queryKey: ["subscriptions"],
     queryFn: async () => {
       const res = await axiosInstance.get("/records-dashboard/subscriptions");
+      console.log(res)
       return res.data;
     },
     refetchOnWindowFocus: true,
@@ -161,7 +162,7 @@ export default function Subscriptions() {
   }
 
   // Filter data
-  const filteredData = subscriptions?.filter((product: Plans) => {
+  const filteredData = subscriptions.data?.filter((product: Plans) => {
     const matchesSearch = product.name.en
       .toLowerCase()
       .includes(userSearch.toLowerCase());

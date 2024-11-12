@@ -60,7 +60,7 @@ const EditLead = () => {
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      <PageTitle title="Edit Lead" />
+      <PageTitle title="Edit Sale" />
       {mutation.error && (
         <div className="text-red-500">{(mutation.error as Error).message}</div>
       )}

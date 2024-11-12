@@ -52,13 +52,13 @@ function App() {
         <Route path="/new-admin" element={<AddAdmin />} />
         <Route path="/edit-admin/:id" element={<EditAdmin />} />
 
-        <Route path="/leads" element={<Leads />} />
-        <Route path="/new-lead" element={<AddLead />} />
-        <Route path="/edit-lead/:id" element={<EditLead />} />
+        <Route path="/sales" element={<Leads />} />
+        <Route path="/new-sale" element={<AddLead />} />
+        <Route path="/edit-sale/:id" element={<EditLead />} />
 
-        <Route path="/plans" element={<Plans />} />
-        <Route path="/new-plan" element={<AddPlan />} />
-        <Route path="/edit-plan/:id" element={<EditPlan />} />
+        <Route path="/products" element={<Plans />} />
+        <Route path="/new-product" element={<AddPlan />} />
+        <Route path="/edit-product/:id" element={<EditPlan />} />
 
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/new-subscription" element={<AddSubscription />} />

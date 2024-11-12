@@ -124,7 +124,7 @@ export default function Leads() {
         return (
           <div className="flex gap-2">
             {/* Link to Edit user */}
-            <Link to={`/edit-lead/${id}`} state={{ user: row.original }}>
+            <Link to={`/edit-sale/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -153,18 +153,18 @@ export default function Leads() {
 
   return (
     <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
-      <PageTitle title="Leads" />
+      <PageTitle title="Sales" />
       <Options
         haveSearch={true}
         searchValue={userSearch}
         setSearchValue={setUserSearch}
         buttons={[
-          <Link to="/new-lead" key="add-user">
+          <Link to="/new-sale" key="add-user">
             {/* add plus icon */}
 
             <Button variant="default" className="flex items-center gap-1">
               <PlusIcon className="w-4 h-4" />
-              <span>Add Lead</span>
+              <span>Add Sale</span>
             </Button>
           </Link>,
         ]}
@@ -173,7 +173,7 @@ export default function Leads() {
       <DataTable
         columns={columns}
         data={records || []}
-        editLink={"/edit-lead"} // Provide the base link for editing users
+        editLink={"/edit-sale"} // Provide the base link for editing users
         handleDelete={function (id: string): void {
           throw new Error("Function not implemented.");
         }}
