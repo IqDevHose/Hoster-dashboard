@@ -9,6 +9,7 @@ import Spinner from "@/components/Spinner";
 import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select } from "@/components/ui/select"; // Assuming Select component for dropdowns
 
 // Define the schema compatible with backend
 const schema = z.object({
@@ -70,7 +71,7 @@ const AddLead = () => {
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       // Transform data if necessary before sending
-      return await axiosInstance.post("/records", data);
+      return await axiosInstance.post("/records-dashborad", data);
     },
     onSuccess: () => {
       navigate("/leads");
@@ -78,8 +79,8 @@ const AddLead = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
-    // mutation.mutate(data);
+    console.log(data);
+    mutation.mutate(data);
   };
 
   return (
@@ -90,43 +91,86 @@ const AddLead = () => {
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Map through each field with Controller */}
-        {Object.keys(schema.shape).map((field) => (
-          <div className="flex flex-col gap-2" key={field}>
-            <label htmlFor={field}>{field}</label>
+        {Object.entries(schema.shape).map(([fieldName, fieldSchema]) => (
+          <div className="flex flex-col gap-2" key={fieldName}>
+            <label htmlFor={fieldName}>{fieldName}</label>
             <Controller
-              name={field as keyof FormData}
+              name={fieldName as keyof FormData}
               control={control}
-              render={({ field }) =>
-                field.name === "isApplicantManager" ? (
-                  <Checkbox
-                    {...field}
-                    id={field.name}
-                    disabled={mutation.isLoading}
-                  />
-                ) : (
-                  <Input
-                    {...field}
-                    id={field.name}
-                    type={
-                      field.name.includes("Email") ? "email" : "text"
-                    }
-                    disabled={mutation.isLoading}
-                    className={`${errors[field.name] ? "border-red-500" : ""}`}
-                  />
-                )
-              }
+              render={({ field }) => {
+                if (fieldName === "isApplicantManager") {
+                  return (
+                    <Checkbox
+                      {...field}
+                      id={fieldName}
+                      checked={field.value as boolean}
+                      disabled={mutation.isPending}
+                    />
+                  );
+                } else if (fieldName === "domainType") {
+                  return (
+                    <Select
+                      {...field}
+                      id={fieldName}
+                      disabled={mutation.isPending}
+                      options={[
+                        { label: "IQ", value: "IQ" },
+                        { label: "COM IQ", value: "COM_IQ" },
+                        { label: "NET IQ", value: "NET_IQ" },
+                        { label: "ORG IQ", value: "ORG_IQ" },
+                        { label: "NAME IQ", value: "NAME_IQ" },
+                        { label: "TV IQ", value: "TV_IQ" },
+                      ]}
+                    />
+                  );
+                } else if (fieldName === "applicantDocFile") {
+                  return (
+                    <input
+                      id={fieldName}
+                      type="file"
+                      disabled={mutation.isPending}
+                      onChange={(e) => {
+                        field.onChange(e.target.files?.[0] || "");
+                      }}
+                      className={`${
+                        errors.applicantDocFile ? "border-red-500" : ""
+                      }`}
+                    />
+                  );
+                } else {
+                  return (
+                    <Input
+                      {...field}
+                      id={fieldName}
+                      type={
+                        fieldName.includes("Email")
+                          ? "email"
+                          : fieldSchema instanceof z.ZodEnum
+                          ? "text"
+                          : "text"
+                      }
+                      disabled={mutation.isPending}
+                      className={`${
+                        errors[fieldName as keyof FormData]
+                          ? "border-red-500"
+                          : ""
+                      }`}
+                    />
+                  );
+                }
+              }}
             />
-            {errors[field as keyof FormData] && (
+            {errors[fieldName as keyof FormData] && (
               <p className="text-red-500">
-                {errors[field as keyof FormData]?.message}
+                {errors[fieldName as keyof FormData]?.message}
               </p>
             )}
           </div>
         ))}
 
         <div className="flex justify-between items-center">
-          <Button type="submit" variant="default" disabled={mutation.isLoading}>
-            {mutation.isLoading ? <Spinner size="sm" /> : "Add"}
+          <Button type="submit" variant="default" disabled={mutation.isPending}>
+            {mutation.isPending ? <Spinner size="sm" /> : "Add"}
           </Button>
         </div>
       </form>

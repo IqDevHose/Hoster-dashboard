@@ -38,3 +38,13 @@ export interface UserT {
     salesAmount: string;
     image: string; // Change this to string
   };
+
+
+  export enum DomainTypeEnum {
+    IQ = "IQ",
+    COM_IQ = "COM_IQ",
+    NET_IQ = "NET_IQ",
+    ORG_IQ = "ORG_IQ",
+    NAME_IQ = "NAME_IQ",
+    TV_IQ = "TV_IQ",
+  }
