@@ -98,21 +98,37 @@ export default function Leads() {
       },
     },
     {
-      accessorKey: "applicantPhone",
+      accessorKey: "leadName",
+      header: "Lead Name",
+    },
+    {
+      accessorKey: "company",
+      header: "Company",
+    },
+    {
+      accessorKey: "phoneNumber",
       header: "Phone",
     },
     {
-      accessorKey: "domain",
-      header: "Domain",
+      accessorKey: "serviceRequired",
+      header: "Service Required",
     },
     {
-      accessorKey: "domainType",
-      header: "Domain Type",
+      accessorKey: "date",
+      header: "Date",
     },
-    {
-      accessorKey: "domainPurpose",
-      header: "Purpose",
-    },
+    // {
+    //   accessorKey: "domain",
+    //   header: "Domain",
+    // },
+    // {
+    //   accessorKey: "domainType",
+    //   header: "Domain Type",
+    // },
+    // {
+    //   accessorKey: "domainPurpose",
+    //   header: "Purpose",
+    // },
     {
       accessorKey: "actions",
       header: "Actions",
