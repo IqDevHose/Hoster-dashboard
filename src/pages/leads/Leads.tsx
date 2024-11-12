@@ -133,18 +133,6 @@ export default function Leads() {
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {/* Button to Delete user */}
-            {/* <Button
-              variant="ghost"
-              size="icon"
-              className="text-red-500 hover:text-red-600"
-              onClick={() => {
-                setSelectedUser({ id, name }); // Set selected user for deletion
-                setModalOpen(true); // Open confirmation modal
-              }}
-            >
-              <TrashIcon className="h-4 w-4" />
-            </Button> */}
           </div>
         );
       },
