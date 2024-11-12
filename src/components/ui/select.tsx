@@ -144,6 +144,31 @@ const SelectSeparator = React.forwardRef<
 ))
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName
 
+interface SelectProps {
+  value?: string;
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}
+
+interface SelectTriggerProps {
+  className?: string;
+  children: React.ReactNode;
+}
+
+interface SelectValueProps {
+  placeholder: string;
+}
+
+interface SelectContentProps {
+  children: React.ReactNode;
+}
+
+interface SelectItemProps {
+  value: string;
+  children: React.ReactNode;
+}
+
 export {
   Select,
   SelectGroup,

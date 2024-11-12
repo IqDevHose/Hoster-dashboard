@@ -8,8 +8,9 @@ import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
 import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select } from "@/components/ui/select"; // Assuming Select component for dropdowns
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useEffect } from "react";
 
 // Define the schema compatible with backend
 const schema = z.object({
@@ -17,25 +18,27 @@ const schema = z.object({
   domainAlt1: z.string().min(1, "Alternative domain is required"),
   domainAlt2: z.string().optional(),
   domainPurpose: z.enum([
-    "ART_GALLERY",
-    "COMPANY",
-    "ECOMMERCE",
-    "EDUCATIONAL",
-    "KEEP_THE_DOMAIN",
-    "MOBILE_APP",
-    "NEWS_PLATFORM",
-    "PROMOTIONAL",
-    "PERSONAL_BLOG",
-    "COMUNITY",
-    "OTHER",
+    "art_gallery",
+    "company",
+    "ecommerce",
+    "educational",
+    "keep_the_domain",
+    "mobile_app",
+    "news_platform",
+    "promotional",
+    "personal_blog",
+    "comunity",
+    "other",
   ]),
-  domainDuration: z.enum(["YEAR", "TWO_YEAR", "THREE_YEAR"]),
+  domainDuration: z.enum(["year", "two_year", "three_year"]),
   domainType: z
-    .enum(["IQ", "COM_IQ", "NET_IQ", "ORG_IQ", "NAME_IQ", "TV_IQ"])
+    .enum([".iq", ".com.iq", ".net.iq", ".org.iq", ".name.iq", ".tv.iq"])
     .optional(),
   applicantName: z.string().min(2, "Name must be at least 2 characters"),
-  applicantDocType: z.enum(["NATIONAL_ID", "PASSPORT", "OTHER"]),
-  applicantDocFile: z.string().min(1, "Document file is required"),
+  applicantDocType: z.enum(["national_id", "passport", "other"]),
+  applicantDocFile: z.instanceof(File).refine((file) => file instanceof File, {
+    message: "Document file is required"
+  }),
   applicantGovernorate: z.string().min(1, "Governorate is required"),
   applicantCity: z.string().min(1, "City is required"),
   applicantStreet: z.string().optional(),
@@ -52,7 +55,7 @@ const schema = z.object({
   managerAddress: z.string().optional(),
   managerPhone: z.string().optional(),
   managerEmail: z.string().email("Invalid manager email address").optional(),
-  planId: z.number().default(1), // Default to planId 1 if not specified
+  planId: z.string() // Default to planId 1 if not specified
 });
 
 type FormData = z.infer<typeof schema>;
@@ -64,14 +67,30 @@ const AddLead = () => {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      // Transform data if necessary before sending
-      return await axiosInstance.post("/records-dashborad", data);
+      const formData = new FormData();
+
+      // Append all fields to FormData
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === 'applicantDocFile' && value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+
+      return await axiosInstance.post("/records", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
     },
     onSuccess: () => {
       navigate("/leads");
@@ -82,6 +101,23 @@ const AddLead = () => {
     console.log(data);
     mutation.mutate(data);
   };
+
+  // Watch for changes in isApplicantManager
+  const isApplicantManager = watch("isApplicantManager");
+  const applicantName = watch("applicantName");
+  const applicantEmail = watch("applicantEmail");
+  const applicantPhone = watch("applicantPhone");
+  const applicantStreet = watch("applicantStreet");
+
+  // Effect to copy applicant details to manager fields when isApplicantManager is true
+  useEffect(() => {
+    if (isApplicantManager) {
+      setValue("managerName", applicantName);
+      setValue("managerEmail", applicantEmail);
+      setValue("managerPhone", applicantPhone);
+      setValue("managerAddress", applicantStreet);
+    }
+  }, [isApplicantManager, applicantName, applicantEmail, applicantPhone, applicantStreet, setValue]);
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
@@ -100,28 +136,90 @@ const AddLead = () => {
               render={({ field }) => {
                 if (fieldName === "isApplicantManager") {
                   return (
-                    <Checkbox
-                      {...field}
-                      id={fieldName}
+                    <Switch
                       checked={field.value as boolean}
+                      onCheckedChange={field.onChange}
                       disabled={mutation.isPending}
                     />
                   );
                 } else if (fieldName === "domainType") {
                   return (
                     <Select
-                      {...field}
-                      id={fieldName}
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
                       disabled={mutation.isPending}
-                      options={[
-                        { label: "IQ", value: "IQ" },
-                        { label: "COM IQ", value: "COM_IQ" },
-                        { label: "NET IQ", value: "NET_IQ" },
-                        { label: "ORG IQ", value: "ORG_IQ" },
-                        { label: "NAME IQ", value: "NAME_IQ" },
-                        { label: "TV IQ", value: "TV_IQ" },
-                      ]}
-                    />
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select domain type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value=".iq">IQ</SelectItem>
+                        <SelectItem value=".com.iq">COM IQ</SelectItem>
+                        <SelectItem value=".net.iq">NET IQ</SelectItem>
+                        <SelectItem value=".org.iq">ORG IQ</SelectItem>
+                        <SelectItem value=".name.iq">NAME IQ</SelectItem>
+                        <SelectItem value=".tv.iq">TV IQ</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  );
+                } else if (fieldName === "domainPurpose") {
+                  return (
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                      disabled={mutation.isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select domain purpose" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="art_gallery">Art Gallery</SelectItem>
+                        <SelectItem value="company">Company</SelectItem>
+                        <SelectItem value="ecommerce">E-commerce</SelectItem>
+                        <SelectItem value="educational">Educational</SelectItem>
+                        <SelectItem value="keep_the_domain">Keep the Domain</SelectItem>
+                        <SelectItem value="mobile_app">Mobile App</SelectItem>
+                        <SelectItem value="news_platform">News Platform</SelectItem>
+                        <SelectItem value="promotional">Promotional</SelectItem>
+                        <SelectItem value="personal_blog">Personal Blog</SelectItem>
+                        <SelectItem value="comunity">Community</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  );
+                } else if (fieldName === "domainDuration") {
+                  return (
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                      disabled={mutation.isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="year">1 Year</SelectItem>
+                        <SelectItem value="two_year">2 Years</SelectItem>
+                        <SelectItem value="three_year">3 Years</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  );
+                } else if (fieldName === "applicantDocType") {
+                  return (
+                    <Select
+                      value={String(field.value)}
+                      onValueChange={field.onChange}
+                      disabled={mutation.isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select document type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="national_id">National ID</SelectItem>
+                        <SelectItem value="passport">Passport</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   );
                 } else if (fieldName === "applicantDocFile") {
                   return (
@@ -130,11 +228,13 @@ const AddLead = () => {
                       type="file"
                       disabled={mutation.isPending}
                       onChange={(e) => {
-                        field.onChange(e.target.files?.[0] || "");
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          field.onChange(file);
+                        }
                       }}
-                      className={`${
-                        errors.applicantDocFile ? "border-red-500" : ""
-                      }`}
+                      className={`${errors.applicantDocFile ? "border-red-500" : ""
+                        }`}
                     />
                   );
                 } else {
@@ -142,19 +242,13 @@ const AddLead = () => {
                     <Input
                       {...field}
                       id={fieldName}
-                      type={
-                        fieldName.includes("Email")
-                          ? "email"
-                          : fieldSchema instanceof z.ZodEnum
-                          ? "text"
-                          : "text"
-                      }
+                      type={fieldName.includes('Email') ? 'email' : 'text'}
                       disabled={mutation.isPending}
-                      className={`${
-                        errors[fieldName as keyof FormData]
-                          ? "border-red-500"
-                          : ""
-                      }`}
+                      className={`${errors[fieldName as keyof FormData] ? 'border-red-500' : ''}`}
+                      value={typeof field.value === 'boolean' ?
+                        String(field.value) :
+                        field.value?.toString() ?? ''
+                      }
                     />
                   );
                 }
