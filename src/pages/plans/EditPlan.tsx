@@ -100,8 +100,9 @@ const EditPlan = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    mutation.mutate(data);
-    console.log(data);
+    const { advantages, ...rest } = data;
+    console.log(advantages);
+    // mutation.mutate(data);
   };
 
   if (loading) return <Spinner />;
