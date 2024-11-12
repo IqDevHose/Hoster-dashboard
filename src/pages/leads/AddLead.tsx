@@ -10,30 +10,48 @@ import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Define the schema
+// Define the schema compatible with backend
 const schema = z.object({
-  domainName: z.string().min(1, "Domain name is required"),
-  iraqiDomain: z.string().optional(),
-  purpose: z.string().min(1, "Purpose is required"),
-  bookingPeriod: z.string().min(1, "Booking period is required"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  identityType: z.string().min(1, "Identity type is required"),
-  governate: z.string().min(1, "Governate is required"),
-  city: z.string().min(1, "City is required"),
-  street: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  email: z.string().email("Invalid email address"),
+  domain: z.string().min(1, "Domain name is required"),
+  domainAlt1: z.string().min(1, "Alternative domain is required"),
+  domainAlt2: z.string().optional(),
+  domainPurpose: z.enum([
+    "ART_GALLERY",
+    "COMPANY",
+    "ECOMMERCE",
+    "EDUCATIONAL",
+    "KEEP_THE_DOMAIN",
+    "MOBILE_APP",
+    "NEWS_PLATFORM",
+    "PROMOTIONAL",
+    "PERSONAL_BLOG",
+    "COMUNITY",
+    "OTHER",
+  ]),
+  domainDuration: z.enum(["YEAR", "TWO_YEAR", "THREE_YEAR"]),
+  domainType: z
+    .enum(["IQ", "COM_IQ", "NET_IQ", "ORG_IQ", "NAME_IQ", "TV_IQ"])
+    .optional(),
+  applicantName: z.string().min(2, "Name must be at least 2 characters"),
+  applicantDocType: z.enum(["NATIONAL_ID", "PASSPORT", "OTHER"]),
+  applicantDocFile: z.string().min(1, "Document file is required"),
+  applicantGovernorate: z.string().min(1, "Governorate is required"),
+  applicantCity: z.string().min(1, "City is required"),
+  applicantStreet: z.string().optional(),
+  applicantPhone: z.string().min(1, "Phone number is required"),
+  applicantEmail: z.string().email("Invalid email address"),
   companyName: z.string().min(1, "Company name is required"),
-  businessType: z.string().min(1, "Business type is required"),
-  registrationNumber: z.string().optional(),
-  headquartersAddress: z.string().optional(),
-  businessPhoneNumber: z.string().optional(),
-  businessEmail: z.string().email("Invalid business email address").optional(),
-  sameAsApplicantAdmin: z.boolean(),
-  adminName: z.string().optional(),
-  adminAddress: z.string().optional(),
-  adminPhoneNumber: z.string().optional(),
-  adminEmail: z.string().email("Invalid admin email address").optional(),
+  companyType: z.string().min(1, "Company type is required"),
+  commercialRegistrationNumber: z.string().optional(),
+  companyMainAddress: z.string().optional(),
+  companyPhone: z.string().optional(),
+  companyEmail: z.string().email("Invalid company email address").optional(),
+  isApplicantManager: z.boolean(),
+  managerName: z.string().optional(),
+  managerAddress: z.string().optional(),
+  managerPhone: z.string().optional(),
+  managerEmail: z.string().email("Invalid manager email address").optional(),
+  planId: z.number().default(1), // Default to planId 1 if not specified
 });
 
 type FormData = z.infer<typeof schema>;
@@ -51,6 +69,7 @@ const AddLead = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
+      // Transform data if necessary before sending
       return await axiosInstance.post("/records", data);
     },
     onSuccess: () => {
@@ -59,7 +78,8 @@ const AddLead = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    console.log(data)
+    // mutation.mutate(data);
   };
 
   return (
@@ -74,35 +94,39 @@ const AddLead = () => {
           <div className="flex flex-col gap-2" key={field}>
             <label htmlFor={field}>{field}</label>
             <Controller
-              name={field}
+              name={field as keyof FormData}
               control={control}
               render={({ field }) =>
-                field.name === "sameAsApplicantAdmin" ? (
+                field.name === "isApplicantManager" ? (
                   <Checkbox
                     {...field}
                     id={field.name}
-                    disabled={mutation.isPending}
+                    disabled={mutation.isLoading}
                   />
                 ) : (
                   <Input
                     {...field}
                     id={field.name}
-                    type={field.name.includes("email") ? "email" : "text"}
-                    disabled={mutation.isPending}
+                    type={
+                      field.name.includes("Email") ? "email" : "text"
+                    }
+                    disabled={mutation.isLoading}
                     className={`${errors[field.name] ? "border-red-500" : ""}`}
                   />
                 )
               }
             />
-            {errors[field.name] && (
-              <p className="text-red-500">{errors[field.name].message}</p>
+            {errors[field as keyof FormData] && (
+              <p className="text-red-500">
+                {errors[field as keyof FormData]?.message}
+              </p>
             )}
           </div>
         ))}
 
         <div className="flex justify-between items-center">
-          <Button type="submit" variant="default" disabled={mutation.isPending}>
-            {mutation.isPending ? <Spinner size="sm" /> : "Add"}
+          <Button type="submit" variant="default" disabled={mutation.isLoading}>
+            {mutation.isLoading ? <Spinner size="sm" /> : "Add"}
           </Button>
         </div>
       </form>
