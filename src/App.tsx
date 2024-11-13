@@ -21,7 +21,7 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import RegisterPage from "./pages/Register";
 import EditPlan from "./pages/plans/EditPlan";
-import Plans from "./pages/plans/Plans";
+import Products from "./pages/plans/Plans";
 import AddSubscription from "./pages/subs/AddSubscription";
 import Subscriptions from "./pages/subs/Subscriptions";
 import EditSubscription from "./pages/subs/EditSubscription";
@@ -30,8 +30,9 @@ import Admins from "./pages/admins/Admins";
 import AddAdmin from "./pages/admins/AddAdmin";
 import EditAdmin from "./pages/admins/EditAdmin";
 import Leads from "./pages/leads/Leads";
-import AddLead from "./pages/leads/AddLead";
-import EditLead from "./pages/leads/EditLead";
+import AddSale from "./pages/leads/AddSale";
+import EditLead from "./pages/leads/EditSale";
+import EditSale from "./pages/leads/EditSale";
 
 function App() {
   return (
@@ -53,10 +54,10 @@ function App() {
         <Route path="/edit-admin/:id" element={<EditAdmin />} />
 
         <Route path="/sales" element={<Leads />} />
-        <Route path="/new-sale" element={<AddLead />} />
-        <Route path="/edit-sale/:id" element={<EditLead />} />
+        <Route path="/new-sale" element={<AddSale />} />
+        <Route path="/edit-sale/:id" element={<EditSale />} />
 
-        <Route path="/products" element={<Plans />} />
+        <Route path="/products" element={<Products />} />
         <Route path="/new-product" element={<AddPlan />} />
         <Route path="/edit-product/:id" element={<EditPlan />} />
 

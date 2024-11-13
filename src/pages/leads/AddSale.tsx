@@ -19,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useEffect } from "react";
 
 const schema = z.object({
+  SalesName: z.string().min(1, "Lead name is required"),
   leadName: z.string().min(1, "Lead name is required"),
   company: z.string().min(1, "Company name is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
@@ -31,12 +32,12 @@ const schema = z.object({
   ]),
   leadStatus: z.enum(["cold_lead", "hot_lead", "unsure"]),
   notes: z.string().optional(),
-  date: z.string().optional(), // Optional date field
+  selectedDate: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const AddLead = () => {
+const AddSale = () => {
   const navigate = useNavigate();
 
   const {
@@ -262,4 +263,4 @@ const AddLead = () => {
   );
 };
 
-export default AddLead;
+export default AddSale;

@@ -9,7 +9,13 @@ import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import Loading from "@/components/Loading";
 
@@ -53,17 +59,17 @@ const schema = z.object({
   managerAddress: z.string().optional(),
   managerPhone: z.string().optional(),
   managerEmail: z.string().email("Invalid manager email address").optional(),
-  planId: z.string()
+  planId: z.string(),
 });
 
 type FormData = z.infer<typeof schema>;
 
-const EditLead = () => {
+const EditSale = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: lead, isLoading } = useQuery({
-    queryKey: ["lead", id],
+    queryKey: ["sale", id],
     queryFn: async () => {
       const response = await axiosInstance.get(`/records-dashboard/${id}`);
       return response.data;
@@ -92,7 +98,7 @@ const EditLead = () => {
       const formData = new FormData();
 
       Object.entries(data).forEach(([key, value]) => {
-        if (key === 'applicantDocFile' && value instanceof File) {
+        if (key === "applicantDocFile" && value instanceof File) {
           formData.append(key, value);
         } else {
           formData.append(key, String(value));
@@ -101,7 +107,7 @@ const EditLead = () => {
 
       return await axiosInstance.put(`/records-dashboard/${id}`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
     },
@@ -127,7 +133,14 @@ const EditLead = () => {
       setValue("managerPhone", applicantPhone);
       setValue("managerAddress", applicantStreet);
     }
-  }, [isApplicantManager, applicantName, applicantEmail, applicantPhone, applicantStreet, setValue]);
+  }, [
+    isApplicantManager,
+    applicantName,
+    applicantEmail,
+    applicantPhone,
+    applicantStreet,
+    setValue,
+  ]);
 
   if (isLoading) return <Loading />;
 
@@ -188,11 +201,17 @@ const EditLead = () => {
                         <SelectItem value="company">Company</SelectItem>
                         <SelectItem value="ecommerce">E-commerce</SelectItem>
                         <SelectItem value="educational">Educational</SelectItem>
-                        <SelectItem value="keep_the_domain">Keep the Domain</SelectItem>
+                        <SelectItem value="keep_the_domain">
+                          Keep the Domain
+                        </SelectItem>
                         <SelectItem value="mobile_app">Mobile App</SelectItem>
-                        <SelectItem value="news_platform">News Platform</SelectItem>
+                        <SelectItem value="news_platform">
+                          News Platform
+                        </SelectItem>
                         <SelectItem value="promotional">Promotional</SelectItem>
-                        <SelectItem value="personal_blog">Personal Blog</SelectItem>
+                        <SelectItem value="personal_blog">
+                          Personal Blog
+                        </SelectItem>
                         <SelectItem value="comunity">Community</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
@@ -244,7 +263,9 @@ const EditLead = () => {
                           field.onChange(file);
                         }
                       }}
-                      className={`${errors.applicantDocFile ? "border-red-500" : ""}`}
+                      className={`${
+                        errors.applicantDocFile ? "border-red-500" : ""
+                      }`}
                     />
                   );
                 } else {
@@ -252,12 +273,17 @@ const EditLead = () => {
                     <Input
                       {...field}
                       id={fieldName}
-                      type={fieldName.includes('Email') ? 'email' : 'text'}
+                      type={fieldName.includes("Email") ? "email" : "text"}
                       disabled={mutation.isPending}
-                      className={`${errors[fieldName as keyof FormData] ? 'border-red-500' : ''}`}
-                      value={typeof field.value === 'boolean' ?
-                        String(field.value) :
-                        field.value?.toString() ?? ''
+                      className={`${
+                        errors[fieldName as keyof FormData]
+                          ? "border-red-500"
+                          : ""
+                      }`}
+                      value={
+                        typeof field.value === "boolean"
+                          ? String(field.value)
+                          : field.value?.toString() ?? ""
                       }
                     />
                   );
@@ -276,7 +302,7 @@ const EditLead = () => {
           <Button type="submit" variant="default" disabled={mutation.isPending}>
             {mutation.isPending ? <Spinner size="sm" /> : "Save Changes"}
           </Button>
-          <Button variant="ghost" onClick={() => navigate("/leads")}>
+          <Button variant="ghost" onClick={() => navigate("/sales")}>
             Cancel
           </Button>
         </div>
@@ -285,4 +311,4 @@ const EditLead = () => {
   );
 };
 
-export default EditLead;
+export default EditSale;

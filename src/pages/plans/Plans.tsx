@@ -10,16 +10,11 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon, TrashIcon, Power } from "lucide-react";
+import { PencilIcon, PlusIcon, Power } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-type Category = {
-  id: string;
-  name: string;
-};
-
 // Define the Plans type with advantages
-type Plans = {
+type Products = {
   id: string;
   name: {
     ar: string;
@@ -36,7 +31,7 @@ type Plans = {
 };
 
 // Main component for PlansPage
-export default function Plans() {
+export default function Products() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
@@ -48,7 +43,7 @@ export default function Plans() {
     isPending,
     error,
   } = useQuery({
-    queryKey: ["plans"],
+    queryKey: ["products"],
     queryFn: async () => {
       const res = await axiosInstance.get("/plans-dashboard");
       return res.data;
@@ -60,9 +55,9 @@ export default function Plans() {
   const columns: ColumnDef<any>[] = [
     {
       accessorKey: "name",
-      header: "Plan Name",
+      header: "Product Name",
       cell: ({ row }) => {
-        const planName = row.original?.title?.en || "Unnamed Plan"; // Fallback text
+        const planName = row.original?.title?.en || "Unnamed Product"; // Fallback text
 
         return (
           <div className="flex gap-2 items-center">
@@ -118,7 +113,11 @@ export default function Plans() {
             <Button
               variant="ghost"
               size="icon"
-              className={`${isActive ? "bg-green-600 hover:bg-green-600/95" : "bg-red-600 hover:bg-red-600/95"}  text-white hover:text-white`}
+              className={`${
+                isActive
+                  ? "bg-green-600 hover:bg-green-600/95"
+                  : "bg-red-600 hover:bg-red-600/95"
+              }  text-white hover:text-white`}
               onClick={() => {
                 setSelectedProduct(row.original); // Set selected plan for deletion
                 setModalOpen(true); // Open confirmation modal
@@ -139,7 +138,7 @@ export default function Plans() {
   if (error)
     return (
       <div className="flex justify-center items-center h-full self-center mx-auto">
-        Error loading product 
+        Error loading product
       </div>
     );
 

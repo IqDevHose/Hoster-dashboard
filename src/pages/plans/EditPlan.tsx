@@ -110,7 +110,7 @@ const EditPlan = () => {
 
   return (
     <div className="p-10">
-      <PageTitle title="Edit Plan" />
+      <PageTitle title="Edit Product" />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-5 pt-5 w-full mx-auto"
@@ -277,7 +277,7 @@ const EditPlan = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => navigate("/plans")}>
+          <Button variant="ghost" onClick={() => navigate("/products")}>
             Cancel
           </Button>
           <Button type="submit" disabled={mutation.isPending}>
