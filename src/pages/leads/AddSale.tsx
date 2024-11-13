@@ -15,24 +15,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { useEffect } from "react";
 
 const schema = z.object({
-  SalesName: z.string().min(1, "Lead name is required"),
   leadName: z.string().min(1, "Lead name is required"),
   company: z.string().min(1, "Company name is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   serviceRequired: z.enum([
     "domain_registration",
-    "domain_hosting",
+    "domain_registration_with_hosting",
     "ecommerce_website",
     "portfolio_website",
     "other",
   ]),
   leadStatus: z.enum(["cold_lead", "hot_lead", "unsure"]),
   notes: z.string().optional(),
-  selectedDate: z.string().optional(),
+  date: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -50,24 +47,22 @@ const AddSale = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, String(value));
-      });
-
-      return await axiosInstance.post("/records", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      return await axiosInstance.post("/records-dashboard/sale/create", {
+        leadName: data.leadName,
+        company: data.company,
+        phoneNumber: data.phoneNumber,
+        serviceRequired: data.serviceRequired,
+        leadStatus: data.leadStatus,
+        notes: data.notes,
       });
     },
     onSuccess: () => {
-      navigate("/leads");
+      navigate("/sales");
     },
   });
 
   const onSubmit = (data: FormData) => {
-    console.log(data);
+    // console.log(data);
     mutation.mutate(data);
   };
 
@@ -76,16 +71,16 @@ const AddSale = () => {
       <PageTitle title="Add Sales" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {/* Sales Name */}
+        {/* Lead name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="SalesName">Sales Name</label>
+          <label htmlFor="leadName">Lead Name</label>
           <Controller
-            name="SalesName"
+            name="leadName"
             control={control}
             render={({ field }) => (
               <Input
                 {...field}
-                id="SalesName"
+                id="leadName"
                 disabled={mutation.isPending}
                 className={errors.leadName ? "border-red-500" : ""}
               />
@@ -176,7 +171,7 @@ const AddSale = () => {
 
         {/* sales Status */}
         <div className="flex flex-col gap-2">
-          <label>sales Status</label>
+          <label>Sales Status</label>
           <Controller
             name="leadStatus"
             control={control}
@@ -202,25 +197,23 @@ const AddSale = () => {
           )}
         </div>
 
-        {/* Date picker input */}
+        {/* Date */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="selectedDate">Select Date</label>
+          <label htmlFor="date">Date</label>
           <Controller
-            name="selectedDate"
+            name="date"
             control={control}
             render={({ field }) => (
               <Input
-                {...field}
-                id="selectedDate"
                 type="date"
+                {...field}
+                id="date"
                 disabled={mutation.isPending}
-                className={`${errors.leadStatus ? "border-red-500" : ""}`}
+                className={errors.date ? "border-red-500" : ""}
               />
             )}
           />
-          {errors.leadStatus && (
-            <p className="text-red-500">{errors.leadStatus.message}</p>
-          )}
+          {errors.date && <p className="text-red-500">{errors.date.message}</p>}
         </div>
 
         {/* Notes */}

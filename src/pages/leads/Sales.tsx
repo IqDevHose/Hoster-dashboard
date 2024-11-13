@@ -1,17 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
-import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Link, useNavigate } from "react-router-dom";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
+import { PencilIcon, PlusIcon } from "lucide-react";
 import Loading from "@/components/Loading";
 
 type User = {
@@ -25,7 +21,7 @@ type User = {
   type: string;
 };
 
-export default function Leads() {
+export default function Sales() {
   const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -46,24 +42,12 @@ export default function Leads() {
     queryKey: ["records"],
     queryFn: async () => {
       const res = await axiosInstance.get("/records-dashboard");
-      console.log("Fetched Leads:", res.data);
+      console.log("Fetched Sales:", res.data);
       return res.data;
     },
   });
 
   const currentUserId = localStorage.getItem("userId"); // Assume this hook gives us the current user's info
-
-  // Function to handle deletion
-  const handleDelete = async (id: number) => {
-    // try {
-    //   await axiosInstance.delete(`/auth/admins/${id}`);
-    //   setModalOpen(false); // Close modal after deletion
-    //   setSelectedUser(null); // Clear selected user
-    //   queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users to update the list
-    // } catch (err) {
-    //   console.error("Failed to delete user:", err);
-    // }
-  };
 
   // Loading state
   if (isLoading) return <Loading />;
@@ -78,25 +62,13 @@ export default function Leads() {
   // Filter users based on search input
   const filteredData = records?.data?.filter(
     (record: any) =>
-      record?.applicantName?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      record?.domain?.toLowerCase().includes(userSearch.toLowerCase())
+      record?.leadName?.toLowerCase().includes(userSearch.toLowerCase())
+    // record?.company?.toLowerCase().includes(userSearch.toLowerCase())
   );
+  console.log("aaaaaaaaaaaaaa", filteredData);
 
   // Define the columns for the table
   const columns: ColumnDef<any>[] = [
-    {
-      accessorKey: "applicantName",
-      header: "Name",
-      cell: ({ row }) => {
-        const isCurrentUser = row.original.id === Number(currentUserId);
-        return (
-          <div className="flex items-center gap-1">
-            <span>{row.getValue("applicantName")}</span>
-            {isCurrentUser && <Badge variant="outline">Me</Badge>}
-          </div>
-        );
-      },
-    },
     {
       accessorKey: "leadName",
       header: "Lead Name",
@@ -117,24 +89,12 @@ export default function Leads() {
       accessorKey: "date",
       header: "Date",
     },
-    // {
-    //   accessorKey: "domain",
-    //   header: "Domain",
-    // },
-    // {
-    //   accessorKey: "domainType",
-    //   header: "Domain Type",
-    // },
-    // {
-    //   accessorKey: "domainPurpose",
-    //   header: "Purpose",
-    // },
     {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
-        const name = row.getValue("name") as string; // Access the user's name
+        // const name = row.getValue("name") as string; // Access the user's name
         console.log(row.original);
 
         return (
@@ -182,18 +142,6 @@ export default function Leads() {
           throw new Error("Function not implemented.");
         }}
       />
-
-      {/* Confirmation Modal */}
-      {/* <ConfirmationModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={() => {
-          if (selectedUser) {
-            handleDelete(selectedUser.id); // Call delete function with the selected user ID
-          }
-        }}
-        message={`Are you sure you want to delete user with name "${selectedUser?.name}"?`} // Updated message to use user's name
-      /> */}
     </div>
   );
 }

@@ -3,19 +3,9 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/home/Home";
 import Users from "./pages/users/Users";
-import ProductsPage from "./pages/plans/Plans";
-import OrdersPage from "./pages/orders/Orders";
-import Settings from "./pages/settings/Settings";
-
 import AddPlan from "./pages/plans/AddPlan";
-
-import AddOrder from "./pages/orders/AddOrder";
 import AddUser from "./pages/users/AddUser";
 import EditUser from "./pages/users/EditUser";
-import Auctions from "./pages/auctions/Auctions";
-import AddAuction from "./pages/auctions/AddAuction";
-import EditAuction from "./pages/auctions/EditAuction";
-
 import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
@@ -29,9 +19,8 @@ import Otp from "./pages/auth/Otp";
 import Admins from "./pages/admins/Admins";
 import AddAdmin from "./pages/admins/AddAdmin";
 import EditAdmin from "./pages/admins/EditAdmin";
-import Leads from "./pages/leads/Leads";
+import Sales from "./pages/leads/Sales";
 import AddSale from "./pages/leads/AddSale";
-import EditLead from "./pages/leads/EditSale";
 import EditSale from "./pages/leads/EditSale";
 
 function App() {
@@ -53,7 +42,7 @@ function App() {
         <Route path="/new-admin" element={<AddAdmin />} />
         <Route path="/edit-admin/:id" element={<EditAdmin />} />
 
-        <Route path="/sales" element={<Leads />} />
+        <Route path="/sales" element={<Sales />} />
         <Route path="/new-sale" element={<AddSale />} />
         <Route path="/edit-sale/:id" element={<EditSale />} />
 
