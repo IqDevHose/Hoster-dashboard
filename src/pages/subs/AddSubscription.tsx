@@ -1,493 +1,248 @@
-import { FormEvent, useState, useEffect } from "react";
-
-import PageTitle from "@/components/PageTitle";
-
+import { useForm, Controller } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "@/utils/AxiosInstance";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-import { useNavigate } from "react-router-dom";
-
-import axiosInstance from "@/utils/AxiosInstance";
-
-import Spinner from "@/components/Spinner";
-
-import CreatableSelect from "react-select/creatable";
-
-import { useMutation, useQuery } from "@tanstack/react-query";
-
-import * as RadixProgress from "@radix-ui/react-progress";
-
-import { MultiValue } from 'react-select';
-
-
-
-interface CategoryOption {
-
-  value: string;
-
-  label: string;
-
+// Define your enums
+export enum StatusEnum {
+  EXPIRED = 'Expired / Renewal Required',
+  IN_PROGRESS = 'Activation In Progress',
 }
 
-
-
-const AddSubscription = () => {
-
-  const [name, setName] = useState("");
-
-  const [description, setDescription] = useState("");
-
-  const [price, setPrice] = useState<number | "">("");
-
-  const [uploadImage, setUploadImage] = useState<File | null>(null);
-
-  const [uploadImageUrl, setUploadImageUrl] = useState<string | null>(null);
-
-  const [categories, setCategories] = useState<string[]>([]);
-
-  const [error, setError] = useState<string | null>(null);
-
-  const navigate = useNavigate();
-
-  const [progress, setProgress] = useState<number>(0);
-
-
-
-  // Fetch categories with default value as empty array
-
-  const { data: categories_data = [], isPending: loadingCategories } = useQuery<
-
-    CategoryOption[]
-
-  >({
-
-    queryKey: ["category"],
-
-    queryFn: async () => {
-
-      const res = await axiosInstance.get("/category");
-
-      return res.data.map((category: { id: string; name: string }) => ({
-
-        value: category.id,
-
-        label: category.name,
-
-      }));
-
-    },
-
-  });
-
-
-
-  // Mutation for submitting the form
-
-  const mutation = useMutation({
-
-    mutationFn: (productData: {
-
-      name: string;
-
-      description: string;
-
-      price: number;
-
-      categories: string[];
-
-      image?: string;
-
-    }) => {
-
-      return axiosInstance.post(`/product`, productData);
-
-    },
-
-    onError: (e: any) => {
-
-      console.error(e);
-
-      setError(e?.response?.data?.message || "Failed to add product");
-
-      setProgress(0);
-
-    },
-
-    onSuccess: () => {
-
-      navigate("/products");
-
-    },
-
-  });
-
-
-
-  // Cleanup the object URL to prevent memory leaks
-
-  useEffect(() => {
-
-    return () => {
-
-      if (uploadImageUrl && uploadImageUrl.startsWith("blob:")) {
-
-        URL.revokeObjectURL(uploadImageUrl);
-
-      }
-
-    };
-
-  }, [uploadImageUrl]);
-
-
-
-  const handleSubmit = async (e: FormEvent) => {
-
-    e.preventDefault();
-
-    setError(null);
-
-
-
-    if (categories.length === 0) {
-
-      setError("Please select at least one category.");
-
-      return;
-
-    }
-
-
-
-    if (!name || !description || price === "") {
-
-      setError("Please fill in all required fields.");
-
-      return;
-
-    }
-
-
-
-    let base64Image: string | undefined;
-
-    if (uploadImage) {
-
-      base64Image = await convertToBase64(uploadImage);
-
-    }
-
-
-
-    const productData = {
-
-      name,
-
-      description,
-
-      price: Number(price),
-
-      categories,
-
-      image: base64Image,
-
-    };
-
-
-
-    mutation.mutate(productData);
-
-  };
-
-
-
-  const convertToBase64 = (file: File): Promise<string> => {
-
-    return new Promise((resolve, reject) => {
-
-      const reader = new FileReader();
-
-      reader.readAsDataURL(file);
-
-      reader.onload = () => resolve(reader.result as string);
-
-      reader.onerror = error => reject(error);
-
-    });
-
-  };
-
-
-
-  const handleCategoryChange = (
-
-    newValue: MultiValue<CategoryOption>,
-
-  ) => {
-
-    const selectedCategories = newValue.map(option => option.label);
-
-    setCategories(selectedCategories);
-
-  };
-
-
-
-  return (
-
-    <div className="p-10 flex flex-col gap-5 w-full">
-
-      <PageTitle title="Add Subscription" />
-
-      {error && <div className="text-red-500">{error}</div>}
-
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-
-        {/* Name Field */}
-
-        <div className="flex flex-col gap-2">
-
-          <label htmlFor="name">Name</label>
-
-          <input
-
-            id="name"
-
-            type="text"
-
-            value={name}
-
-            onChange={(e) => setName(e.target.value)}
-
-            className="border p-2 rounded"
-
-            required
-
-            disabled={mutation.isPending}
-
-          />
-
-        </div>
-
-
-
-        {/* Description Field */}
-
-        <div className="flex flex-col gap-2">
-
-          <label htmlFor="description">Description</label>
-
-          <textarea
-
-            id="description"
-
-            value={description}
-
-            onChange={(e) => setDescription(e.target.value)}
-
-            className="border p-2 rounded"
-
-            required
-
-            disabled={mutation.isPending}
-
-          />
-
-        </div>
-
-
-
-        {/* Price Field */}
-
-        <div className="flex flex-col gap-2">
-
-          <label htmlFor="price">Price</label>
-
-          <input
-
-            id="price"
-
-            type="number"
-
-            value={price === "" ? "" : price}
-
-            onChange={(e) =>
-
-              setPrice(e.target.value ? Number(e.target.value) : "")
-
-            }
-
-            className="border p-2 rounded"
-
-            required
-
-            disabled={mutation.isPending}
-
-          />
-
-        </div>
-
-
-
-        {/* Upload Image */}
-
-        <div className="mb-4">
-
-          <div className="flex gap-4 flex-wrap items-center">
-
-            <label
-
-              htmlFor="upload-image"
-
-              className="block text-sm font-medium text-gray-700"
-
-            >
-
-              Upload Image
-
-            </label>
-
-            {progress > 0 && uploadImage && (
-
-              <div className="flex items-center gap-1">
-
-                <span className="text-gray-400">{progress}%</span>
-
-                {/* Radix UI Progress */}
-
-                <RadixProgress.Root
-
-                  value={progress}
-
-                  max={100}
-
-                  className="relative flex-grow h-2 bg-gray-200 rounded"
-
-                >
-
-                  <RadixProgress.Indicator
-
-                    className="absolute h-2 bg-blue-600 rounded"
-
-                    style={{ width: `${progress}%` }}
-
-                  />
-
-                </RadixProgress.Root>
-
-              </div>
-
-            )}
-
-          </div>
-
-          {uploadImageUrl && (
-
-            <div className="p-4">
-
-              <img
-
-                width={100}
-
-                src={uploadImageUrl}
-
-                alt="Uploaded preview"
-
-                className="object-cover rounded"
-
-              />
-
-            </div>
-
-          )}
-
-          <input
-
-            type="file"
-
-            id="upload-image"
-
-            accept="image/*"
-
-            onChange={(e) => {
-
-              if (e.target.files && e.target.files[0]) {
-
-                const file = e.target.files[0];
-
-                setUploadImage(file);
-
-                setUploadImageUrl(URL.createObjectURL(file));
-
-              }
-
-            }}
-
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-
-            disabled={mutation.isPending}
-
-          />
-
-        </div>
-
-
-
-        {/* Category Selection */}
-
-        <div className="flex flex-col gap-2">
-
-          <label>Categories</label>
-
-          {loadingCategories ? (
-
-            <Spinner size="md" />
-
-          ) : (
-
-            <CreatableSelect
-
-              isMulti
-
-              isDisabled={mutation.isPending}
-
-              options={categories_data}
-
-              value={categories.map(category => ({ value: category, label: category }))}
-
-              onChange={handleCategoryChange}
-
-              isLoading={loadingCategories}
-
-              placeholder="Select or create categories"
-
-            />
-
-          )}
-
-        </div>
-
-
-
-        {/* Error Message */}
-
-        {error && <div className="text-red-500">{error}</div>}
-
-
-
-        {/* Submit Button */}
-
-        <Button type="submit" variant="outline" disabled={mutation.isPending}>
-
-          {mutation.isPending ? <Spinner size="sm" /> : "Add Product"}
-
-        </Button>
-
-      </form>
-
-    </div>
-
-  );
-
+export enum PaymentMethodEnum {
+  CASH = 'cash',
+  ZAIN_CASH = 'zain_cash',
+  QI = 'qi_card',
+  BAGHDAD_BRANCH = 'baghdad_branch',
+}
+
+// Define your form data schema with zod
+const schema = z.object({
+  domainName: z.string().min(1, "Domain Name is required"),
+  clientName: z.string().min(1, "Client Name is required"),
+  phoneNumber: z.string().min(1, "Phone Number is required"),
+  documentLink: z.string().url("Invalid document link"),
+  submissionDate: z.string().min(1, "Submission Date is required"),
+  activationDate: z.string().min(1, "Activation Date is required"),
+  expiryDate: z.string().min(1, "Expiry Date is required"),
+  priceSold: z.string().min(1, "Price Sold is required"),
+  status: z.string().min(1, "Status is required"),
+  paymentMethod: z.string().min(1, "Payment Method is required"),
+});
+
+// Define form data type
+type FormData = {
+  domainName: string;
+  clientName: string;
+  phoneNumber: string;
+  documentLink: string;
+  submissionDate: string;
+  activationDate: string;
+  expiryDate: string;
+  priceSold: string;
+  status: string;
+  paymentMethod: string;
 };
 
-export default AddSubscription;
+export default function SubscriptionForm() {
+  const navigate = useNavigate();
+
+  // Initialize the form with react-hook-form and zod resolver
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
+
+  // Mutation to create subscription
+  const mutation = useMutation({
+    mutationFn: async (data: FormData) => {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+      return await axiosInstance.post("/records-dashboard/subscription/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    },
+    onSuccess: () => {
+      navigate("/subscriptions");
+    },
+    onError: (error) => {
+      console.error("Error during form submission:", error);
+    },
+  });
+
+  // Form submit handler
+  const onSubmit = (data: FormData) => {
+    console.log(data);
+    mutation.mutate(data); // Trigger mutation with the form data
+  };
+
+  return (
+    <>
+      <h1 className="text-2xl font-bold mb-6">Add Subscription</h1>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6 bg-white rounded-lg shadow-lg">
+        
+        {/* Domain Name */}
+        <div className="form-group">
+          <label htmlFor="domainName" className="block font-medium mb-2">Domain Name</label>
+          <Controller
+            name="domainName"
+            control={control}
+            render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.domainName && (
+            <p className="text-red-500 text-sm mt-1">{errors.domainName.message}</p>
+          )}
+        </div>
+
+        {/* Client Name */}
+        <div className="form-group">
+          <label htmlFor="clientName" className="block font-medium mb-2">Client Name</label>
+          <Controller
+            name="clientName"
+            control={control}
+            render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.clientName && (
+            <p className="text-red-500 text-sm mt-1">{errors.clientName.message}</p>
+          )}
+        </div>
+
+        {/* Phone Number */}
+        <div className="form-group">
+          <label htmlFor="phoneNumber" className="block font-medium mb-2">Phone Number</label>
+          <Controller
+            name="phoneNumber"
+            control={control}
+            render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.phoneNumber && (
+            <p className="text-red-500 text-sm mt-1">{errors.phoneNumber.message}</p>
+          )}
+        </div>
+
+        {/* Document Link */}
+        <div className="form-group">
+          <label htmlFor="documentLink" className="block font-medium mb-2">Document Link</label>
+          <Controller
+            name="documentLink"
+            control={control}
+            render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.documentLink && (
+            <p className="text-red-500 text-sm mt-1">{errors.documentLink.message}</p>
+          )}
+        </div>
+
+        {/* Submission Date */}
+        <div className="form-group">
+          <label htmlFor="submissionDate" className="block font-medium mb-2">Submission Date</label>
+          <Controller
+            name="submissionDate"
+            control={control}
+            render={({ field }) => <Input type="date" {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.submissionDate && (
+            <p className="text-red-500 text-sm mt-1">{errors.submissionDate.message}</p>
+          )}
+        </div>
+
+        {/* Activation Date */}
+        <div className="form-group">
+          <label htmlFor="activationDate" className="block font-medium mb-2">Activation Date</label>
+          <Controller
+            name="activationDate"
+            control={control}
+            render={({ field }) => <Input type="date" {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.activationDate && (
+            <p className="text-red-500 text-sm mt-1">{errors.activationDate.message}</p>
+          )}
+        </div>
+
+        {/* Expiry Date */}
+        <div className="form-group">
+          <label htmlFor="expiryDate" className="block font-medium mb-2">Expiry Date</label>
+          <Controller
+            name="expiryDate"
+            control={control}
+            render={({ field }) => <Input type="date" {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.expiryDate && (
+            <p className="text-red-500 text-sm mt-1">{errors.expiryDate.message}</p>
+          )}
+        </div>
+
+        {/* Price Sold */}
+        <div className="form-group">
+          <label htmlFor="priceSold" className="block font-medium mb-2">Price Sold</label>
+          <Controller
+            name="priceSold"
+            control={control}
+            render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
+          />
+          {errors.priceSold && (
+            <p className="text-red-500 text-sm mt-1">{errors.priceSold.message}</p>
+          )}
+        </div>
+
+        {/* Status */}
+        <div className="form-group">
+          <label htmlFor="status" className="block font-medium mb-2">Status</label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <select {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
+                {Object.values(StatusEnum).map((status, index) => (
+                  <option key={index} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          {errors.status && (
+            <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+          )}
+        </div>
+
+        {/* Payment Method */}
+        <div className="form-group">
+          <label htmlFor="paymentMethod" className="block font-medium mb-2">Payment Method</label>
+          <Controller
+            name="paymentMethod"
+            control={control}
+            render={({ field }) => (
+              <select {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500">
+                {Object.values(PaymentMethodEnum).map((method, index) => (
+                  <option key={index} value={method}>
+                    {method}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          {errors.paymentMethod && (
+            <p className="text-red-500 text-sm mt-1">{errors.paymentMethod.message}</p>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <Button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          Submit
+        </Button>
+      </form>
+    </>
+  );
+}
