@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useForm, Controller } from "react-hook-form";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
@@ -226,15 +227,242 @@ export default function Subscriptions() {
         </Select>
       </div>
 
-      <DataTable
-        editLink="/edit-subscription"
-        columns={columns}
-        data={filteredData}
-        handleDelete={(id: string) => {
-          setSelectedProduct(id);
-          setModalOpen(true);
-        }}
-      />
+   
+ {/* 1 */}
+      <div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Domian Name</p>
+<p className=" text-gray-600">Required</p>
+</div>
+<input
+          type="text"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+           
+        />
+
+
+</div>
+
+{/* 2 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Client Name</p>
+<p className=" text-gray-600">Required</p>
+</div>
+<input
+          type="text"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+        
+        />
+
+
+</div>
+
+
+{/* 3 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Phone  Number</p>
+<p className=" text-gray-600">Required</p>
+</div>
+<input
+          type="text"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+
+
+{/* 4 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Document  link</p>
+ 
+</div>
+<input
+          type="text"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+
+
+{/* 5 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Submission  Date</p>
+ 
+</div>
+<input
+          type="date"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+
+
+
+{/* 6 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Activation  Date</p>
+
+</div>
+<input
+             type="date"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+
+
+{/* 7 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Expiry  Date</p>
+ 
+</div>
+<input
+             type="date"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+
+
+{/* 8 */}
+<div   className=" ">
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium">Price  Sold</p>
+ 
+</div>
+<input
+          type="text"
+          // value={searchValue}
+          // onChange={(e) => setSearchValue(e.target.value)}
+          className="px-2 border w-full mt-2 h-10 focus:border-gray-500 transition ease-in-out border-gray-300 rounded-md outline-none"
+          
+        />
+
+
+</div>
+
+{/* 9 */}
+
+<div>
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium"> Status</p>
+<p className=" text-gray-600">Required</p>
+</div>
+
+
+
+<div className="flex gap-3  items-center my-4">  
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as RecordStatusEnum | "")
+          }
+        >
+
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+
+          <SelectContent>  
+              <SelectGroup   >
+                <SelectLabel></SelectLabel>
+                {["Expired/Renewal Required ","Activation In Progrees"].map((status) => (
+                  <SelectItem  key={status || ""} value={status || "em"}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+           
+            <SelectItem defaultChecked value="all">Active</SelectItem>
+          </SelectContent>
+
+        </Select>
+      </div>
+</div>
+
+ 
+{/* 10 */}
+<div>
+
+<div className=" flex items-center justify-between  ">
+<p className=" font-medium"> Payment Method </p>
+<p className=" text-gray-600">Required</p>
+</div>
+
+
+
+<div className="flex gap-3  items-center my-4">  
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as RecordStatusEnum | "")
+          }
+        >
+
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+
+          <SelectContent>  
+              <SelectGroup   >
+                <SelectLabel></SelectLabel>
+                {["Zain Cash ","Qi Card", "Baghdad Branch"].map((status) => (
+                  <SelectItem  key={status || ""} value={status || "em"}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+           
+            <SelectItem defaultChecked value="all">Cash</SelectItem>
+          </SelectContent>
+
+        </Select>
+      </div>
+</div>
 
       <ConfirmationModal
         isOpen={modalOpen}
