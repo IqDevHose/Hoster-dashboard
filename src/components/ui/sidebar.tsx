@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "./button";
 import { useNavigate } from "react-router-dom";
+import logo from "../../assets/images/Hoster-iq.svg"
 
 type Props = {};
 
@@ -48,15 +49,21 @@ export default function Sidebar({}: Props) {
         } md:translate-x-0`}
       >
         <div className="flex flex-col h-full p-4">
+        <div className="h-50px] flex justify-center items-center px-8">
+          <div className="img_container">
+            <img src={logo} alt="" className="w-full bg-cover"/>
+          </div>
+        </div>
           <div className="flex-grow">
             <Nav
               links={[
-                {
-                  title: "Dashboard",
-                  href: "/",
-                  icon: LayoutDashboard,
-                  variant: "default",
-                },
+                // {
+                //   title: "Dashboard",
+                //   href: "/",
+                //   icon: LayoutDashboard,
+                //   variant: "default",
+                // },
+
                 // {
                 //   title: "Users",
                 //   href: "/users",

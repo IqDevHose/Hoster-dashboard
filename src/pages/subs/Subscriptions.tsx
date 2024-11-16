@@ -118,10 +118,20 @@ export default function Subscriptions() {
         const id = row.original.id; // Access the user's ID
         return (
           <div className="flex gap-2">
-            <Link to={`/edit-subscription/${id}`} className="text-blue-600">
+            {/* <Link to= className="text-blue-600">
               <PencilIcon className="w-5 h-5" />
+            </Link> */}
+
+            <Link to={`/edit-subscription/${id}`} state={{ plan: row.original }}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 hover:text-blue-600"
+              >
+                <PencilIcon className="h-4 w-4" />
+              </Button>
             </Link>
-            <button
+            {/* <button
               onClick={() => {
                 setSelectedProduct(row.original);
                 setModalOpen(true);
@@ -129,7 +139,7 @@ export default function Subscriptions() {
               className="text-red-600"
             >
               <TrashIcon className="w-5 h-5" />
-            </button>
+            </button> */}
           </div>
         );
       },

@@ -124,7 +124,7 @@ export default function Admins() {
               </Button>
             </Link>
             {/* Button to Delete user */}
-            <Button
+            {/* <Button
               variant="ghost"
               size="icon"
               className="text-red-500 hover:text-red-600"
@@ -134,7 +134,7 @@ export default function Admins() {
               }}
             >
               <TrashIcon className="h-4 w-4" />
-            </Button>
+            </Button> */}
           </div>
         );
       },

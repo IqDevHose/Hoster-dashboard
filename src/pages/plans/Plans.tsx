@@ -151,14 +151,15 @@ export default function Plans() {
   const handleDeactivate = async (id: string) => {
     try {
       // Optionally fetch the plan to confirm it exists
-      const response = await axiosInstance.get(`/plans-dashboard/${id}`);
+      const response = await axiosInstance.get(`/products/${id}`);
       if (!response.data) {
         console.error("Product not found:", id);
         return;
       }
 
+      console.log(response)
       // Delete the plan
-      await axiosInstance.put(`/plans-dashboard/${id}/toggle-active`);
+      await axiosInstance.put(`products/activation/${id}`);
 
       // Optionally update the local state to reflect the deletion
       setModalOpen(false); // Close modal after deletion

@@ -17,7 +17,7 @@ interface NavProps {
 export function Nav({ links }: NavProps) {
   return (
     <TooltipProvider>
-      <div className="group flex flex-col gap-4 py-14 ">
+      <div className="group flex flex-col gap-4 py-8 ">
         <nav className="grid gap-1">
           {links.map((link, index) => (
             <NavLink
