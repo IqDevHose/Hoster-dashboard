@@ -45,8 +45,7 @@ export default function Leads() {
   } = useQuery({
     queryKey: ["records"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/records-dashboard");
-      console.log("Fetched Leads:", res.data);
+      const res = await axiosInstance.get("/sales");
       return res.data;
     },
   });
@@ -85,19 +84,6 @@ export default function Leads() {
   // Define the columns for the table
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "applicantName",
-      header: "Name",
-      cell: ({ row }) => {
-        const isCurrentUser = row.original.id === Number(currentUserId);
-        return (
-          <div className="flex items-center gap-1">
-            <span>{row.getValue("applicantName")}</span>
-            {isCurrentUser && <Badge variant="outline">Me</Badge>}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "leadName",
       header: "Lead Name",
     },
@@ -117,25 +103,11 @@ export default function Leads() {
       accessorKey: "date",
       header: "Date",
     },
-    // {
-    //   accessorKey: "domain",
-    //   header: "Domain",
-    // },
-    // {
-    //   accessorKey: "domainType",
-    //   header: "Domain Type",
-    // },
-    // {
-    //   accessorKey: "domainPurpose",
-    //   header: "Purpose",
-    // },
     {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
-        const name = row.getValue("name") as string; // Access the user's name
-        console.log(row.original);
 
         return (
           <div className="flex gap-2">

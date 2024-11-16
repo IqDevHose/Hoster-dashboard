@@ -45,7 +45,7 @@ export default function Admins() {
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/auth/admins");
+      const res = await axiosInstance.get("/users");
       console.log("Fetched Admins:", res.data);
       return res.data;
     },
@@ -76,7 +76,7 @@ export default function Admins() {
     );
 
   // Filter users based on search input
-  const filteredData = users?.data?.filter(
+  const filteredData = users?.filter(
     (user: User) =>
       user?.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
       user?.email?.toLowerCase().includes(userSearch.toLowerCase()) ||

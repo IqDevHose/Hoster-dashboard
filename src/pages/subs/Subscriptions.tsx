@@ -37,28 +37,18 @@ type Plans = {
 
 // Enum for record status
 export enum RecordStatusEnum {
-  PENDING = "pending",
-  AVAILABLE = "available",
-  CANCELED = "canceled",
-  REJECTED = "rejected",
-  PAID = "paid",
-  ACTIVE = "active",
-  EXPIRED = "expired",
+  COLD_LEAD= "cold_lead",
+  HOT_LEAD= "hot_lead",
+  UNSURE= "unsure",
 }
 
-// Define groups for statuses
+// // Define groups for statuses
 const statusGroups = {
-  Active: [
-    RecordStatusEnum.AVAILABLE,
-    RecordStatusEnum.PAID,
-    RecordStatusEnum.ACTIVE,
-  ],
-  Inactive: [
-    RecordStatusEnum.PENDING,
-    RecordStatusEnum.CANCELED,
-    RecordStatusEnum.REJECTED,
-    RecordStatusEnum.EXPIRED,
-  ],
+  Type: [
+    RecordStatusEnum.COLD_LEAD,
+    RecordStatusEnum.HOT_LEAD,
+    RecordStatusEnum.UNSURE,
+  ]
 };
 
 export default function Subscriptions() {
@@ -76,8 +66,7 @@ export default function Subscriptions() {
   } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/records-dashboard/subscriptions");
-      console.log(res)
+      const res = await axiosInstance.get("/subscriptions");
       return res.data;
     },
     refetchOnWindowFocus: true,
@@ -85,49 +74,48 @@ export default function Subscriptions() {
 
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "clientName",
+      header: "Client",
+      cell: ({ row }) => {
+        return (
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 items-center">{row.original.clientName}</div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "domainName",
       header: "Domain",
       cell: ({ row }) => {
         return (
           <div className="flex gap-2 items-center">
-            <p>{row.original.domain}</p>
+            <p>{row.original.domainName}</p>
           </div>
         );
       },
     },
     {
-      accessorKey: "domainType",
-      header: "Domain Type",
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">{row.original.domainType}</div>
-          </div>
-        );
-      },
+      accessorKey: "phoneNumber",
+      header: "Phone",
     },
     {
-      accessorKey: "plan",
-      header: "Plan",
+      accessorKey: "submissionDate",
+      header: "Submission Date",
     },
     {
-      accessorKey: "startDate",
-      header: "startDate",
+      accessorKey: "expiryDate",
+      header: "Expiry Date",
     },
     {
-      accessorKey: "endDate",
-      header: "endDate",
-    },
-    {
-      accessorKey: "price",
-      header: "price",
+      accessorKey: "status",
+      header: "Status",
     },
     {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
-        const name = row.getValue("name") as string; // Access the user's name
         return (
           <div className="flex gap-2">
             <Link to={`/edit-subscription/${id}`} className="text-blue-600">
@@ -162,11 +150,11 @@ export default function Subscriptions() {
   }
 
   // Filter data
-  const filteredData = subscriptions.data?.filter((product: Plans) => {
-    const matchesSearch = product.name.en
+  const filteredData = subscriptions.filter((subscription: any) => {
+    const matchesSearch = subscription.clientName
       .toLowerCase()
       .includes(userSearch.toLowerCase());
-    const matchesStatus = statusFilter ? product.status === statusFilter : true;
+    const matchesStatus = statusFilter ? subscription.status === statusFilter : true;
     return matchesSearch && matchesStatus;
   });
 
@@ -200,7 +188,7 @@ export default function Subscriptions() {
         ]}
       />
 
-      <div className="flex gap-3 items-center mb-4">  
+      {/* <div className="flex gap-3 items-center mb-4">  
         <Select
           value={statusFilter}
           onValueChange={(value) =>
@@ -224,7 +212,7 @@ export default function Subscriptions() {
             <SelectItem defaultChecked value="all">All</SelectItem>
           </SelectContent>
         </Select>
-      </div>
+      </div> */}
 
       <DataTable
         editLink="/edit-subscription"

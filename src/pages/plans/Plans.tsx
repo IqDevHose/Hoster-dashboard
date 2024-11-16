@@ -50,7 +50,7 @@ export default function Plans() {
   } = useQuery({
     queryKey: ["plans"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/plans-dashboard");
+      const res = await axiosInstance.get("/products");
       return res.data;
     },
     refetchOnWindowFocus: true, // Automatically refetch on window focus
@@ -59,7 +59,7 @@ export default function Plans() {
   // Define the columns for the DataTable
   const columns: ColumnDef<any>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "title",
       header: "Plan Name",
       cell: ({ row }) => {
         const planName = row.original?.title?.en || "Unnamed Plan"; // Fallback text
@@ -144,8 +144,8 @@ export default function Plans() {
     );
 
   // Search functionality
-  const filteredData = plans.data?.filter((product: any) =>
-    product?.title?.en?.includes(userSearch)
+  const filteredData = plans.filter((plan: any) =>
+    plan?.title?.en?.includes(userSearch)
   );
 
   const handleDeactivate = async (id: string) => {
