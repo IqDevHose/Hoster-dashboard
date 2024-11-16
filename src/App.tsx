@@ -52,7 +52,7 @@ function App() {
         <Route path="/new-admin" element={<AddAdmin />} />
         <Route path="/edit-admin/:id" element={<EditAdmin />} />
 
-        <Route path="/sales" element={<Leads />} />
+        <Route index path="/sales" element={<Leads />} />
         <Route path="/new-sale" element={<AddLead />} />
         <Route path="/edit-sale/:id" element={<EditLead />} />
 

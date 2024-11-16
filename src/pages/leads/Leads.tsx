@@ -1,72 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DataTable } from "@/components/DataTable";
 import Options from "@/components/Options";
 import PageTitle from "@/components/PageTitle";
-import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Link, useNavigate } from "react-router-dom";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Loading from "@/components/Loading";
 
-type User = {
-  avatar: null;
-  birthDay: string;
-  email: string;
-  gender: "male";
-  id: number;
-  name: string;
-  phone: string;
-  type: string;
-};
-
 export default function Leads() {
-  const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<{
-    id: number;
-    name: string;
-  } | null>(null);
-
-  // Initialize query client
-  const queryClient = useQueryClient();
+  const [selectedService, setSelectedService] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
 
   // Query to fetch users
-  const {
-    data: records,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: records, isLoading, error } = useQuery({
     queryKey: ["records"],
     queryFn: async () => {
       const res = await axiosInstance.get("/sales");
+      console.log(res.data)
       return res.data;
     },
   });
 
-  const currentUserId = localStorage.getItem("userId"); // Assume this hook gives us the current user's info
-
-  // Function to handle deletion
-  const handleDelete = async (id: number) => {
-    // try {
-    //   await axiosInstance.delete(`/auth/admins/${id}`);
-    //   setModalOpen(false); // Close modal after deletion
-    //   setSelectedUser(null); // Clear selected user
-    //   queryClient.invalidateQueries({ queryKey: ["users"] }); // Refetch users to update the list
-    // } catch (err) {
-    //   console.error("Failed to delete user:", err);
-    // }
-  };
-
   // Loading state
   if (isLoading) return <Loading />;
-
   if (error)
     return (
       <div className="flex justify-center items-center h-full self-center mx-auto">
@@ -74,12 +34,15 @@ export default function Leads() {
       </div>
     );
 
-  // Filter users based on search input
-  const filteredData = records?.data?.filter(
-    (record: any) =>
-      record?.applicantName?.toLowerCase().includes(userSearch.toLowerCase()) ||
-      record?.domain?.toLowerCase().includes(userSearch.toLowerCase())
-  );
+  // Filter users based on search input and dropdown selections
+  const filteredData = records?.filter((record: any) => {
+    const matchesService =
+      selectedService === "all" || record?.serviceRequired === selectedService;
+    const matchesStatus =
+      selectedStatus === "all" || record?.leadStatus === selectedStatus;
+
+    return matchesService && matchesStatus;
+  });
 
   // Define the columns for the table
   const columns: ColumnDef<any>[] = [
@@ -100,6 +63,10 @@ export default function Leads() {
       header: "Service Required",
     },
     {
+      accessorKey: "leadStatus",
+      header: "Status",
+    },
+    {
       accessorKey: "date",
       header: "Date",
     },
@@ -107,18 +74,17 @@ export default function Leads() {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const id = row.original.id; // Access the user's ID
+        const id = row.original.id;
 
         return (
           <div className="flex gap-2">
-            {/* Link to Edit user */}
             <Link to={`/edit-sale/${id}`} state={{ user: row.original }}>
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-blue-500 hover:text-blue-600"
               >
-                <PencilIcon className="h-4 w-4" />
+                Edit
               </Button>
             </Link>
           </div>
@@ -136,36 +102,56 @@ export default function Leads() {
         setSearchValue={setUserSearch}
         buttons={[
           <Link to="/new-sale" key="add-user">
-            {/* add plus icon */}
-
             <Button variant="default" className="flex items-center gap-1">
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Sale</span>
+              Add Sale
             </Button>
           </Link>,
         ]}
       />
+
+      <div className="flex gap-4 mb-4">
+        {/* Filter by Service Required */}
+        <Select
+          value={selectedService}
+          onValueChange={(value) => setSelectedService(value)}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filter by Service" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Service Required</SelectItem>
+            <SelectItem value="domain_registration_with_hosting">Domain Registration With Hosting</SelectItem>
+            <SelectItem value="domain_registration">Domain Registration</SelectItem>
+            <SelectItem value="portfolio_website">Portfolio Website</SelectItem>
+            <SelectItem value="ecommerce_website">Ecommerce Website</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Filter by Lead Status */}
+        <Select
+          value={selectedStatus}
+          onValueChange={(value) => setSelectedStatus(value)}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filter by Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Status</SelectItem>
+            <SelectItem value="cold_lead">Cold Lead</SelectItem>
+            <SelectItem value="hot_lead">Host Lead</SelectItem>
+            <SelectItem value="unsure">Unsure</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Pass the filtered data to the DataTable */}
       <DataTable
         columns={columns}
-        data={records || []}
-        editLink={"/edit-sale"} // Provide the base link for editing users
-        handleDelete={function (id: string): void {
-          throw new Error("Function not implemented.");
-        }}
+        data={filteredData || []}
+        editLink={"/edit-sale"}
+        handleDelete={(id: string) => console.log("Delete", id)}
       />
-
-      {/* Confirmation Modal */}
-      {/* <ConfirmationModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onConfirm={() => {
-          if (selectedUser) {
-            handleDelete(selectedUser.id); // Call delete function with the selected user ID
-          }
-        }}
-        message={`Are you sure you want to delete user with name "${selectedUser?.name}"?`} // Updated message to use user's name
-      /> */}
     </div>
   );
 }

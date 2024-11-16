@@ -1,223 +1,268 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import PageTitle from "@/components/PageTitle";
+import { z } from "zod";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useParams } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import CreatableSelect from "react-select/creatable";
-import { ActionMeta, MultiValue } from 'react-select';
 
+// Enums for select options
+export enum StatusEnum {
+  EXPIRED = "expired",
+  IN_PROGRESS = "in_progress",
+}
+
+export enum PaymentMethodEnum {
+  QI = "qi_card",
+  CASH = "cash",
+  ZAIN_CASH = "zain_cash",
+  BAGHDAD_BRANCH = "baghdad_branch",
+}
+
+// Zod schema for validation
 const schema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  price: z.number().min(0, "Price must be a positive number"),
-  categories: z.array(z.string()).nonempty("At least one category is required"),
+  domainName: z.string().min(1, "Domain Name is required"),
+  clientName: z.string().min(1, "Client Name is required"),
+  phoneNumber: z.string().min(1, "Phone Number is required"),
+  documentsLink: z.string().optional(),
+  submissionDate: z.string().min(1, "Submission Date is required"),
+  activationDate: z.string().min(1, "Activation Date is required"),
+  expiryDate: z.string().min(1, "Expiry Date is required"),
+  price: z.string(),
+  status: z.nativeEnum(StatusEnum),
+  paymentMethod: z.nativeEnum(PaymentMethodEnum),
 });
 
 type FormData = z.infer<typeof schema>;
 
-interface CategoryOption {
-  value: string;
-  label: string;
-}
-
 const EditSubscription = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
-  });
-
-  const { data: product } = useQuery({
-    queryKey: ["product", id],
-    queryFn: async () => {
-      const res = await axiosInstance.get(`/product/${id}`);
-      return res.data;
+    defaultValues: {
+      domainName: "",
+      clientName: "",
+      phoneNumber: "",
+      documentsLink: "",
+      submissionDate: "",
+      activationDate: "",
+      expiryDate: "",
+      price: "",
+      status: StatusEnum.IN_PROGRESS,
+      paymentMethod: PaymentMethodEnum.CASH,
     },
-    enabled: !!id,
   });
 
   useEffect(() => {
-    if (product) {
-      reset({
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        categories: product.categories,
-      });
-      setImagePreview(product.image ? product.image : null);
+    if (location.state?.subscription) {
+      reset(location.state.subscription);
+      setLoading(false);
+    } else {
+      axiosInstance
+        .get(`/subscriptions/${id}`)
+        .then((res) => {
+          reset(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError("Failed to load subscription data");
+          setLoading(false);
+        });
     }
-  }, [product, reset]);
-
-  const mutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      let imageBase64 = '';
-      if (image) {
-        imageBase64 = await convertToBase64(image);
-      }
-
-      const productData = {
-        ...data,
-        image: imageBase64 || undefined,
-      };
-
-      await axiosInstance.put(`/product/${id}`, productData);
-    },
-    onSuccess: () => {
-      navigate("/products");
-    },
-  });
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const convertToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  };
+  }, [id, location.state, reset]);
 
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    const formattedData = { ...data, price: Number(data.price) };
+    axiosInstance
+      .put(`/subscriptions/${id}`, formattedData)
+      .then(() => {
+        navigate("/subscriptions");
+      })
+      .catch(() => {
+        setError("Failed to update subscription");
+      });
   };
 
-  const { data: categories_data = [], isPending: loadingCategories } = useQuery<CategoryOption[]>({
-    queryKey: ["category"],
-    queryFn: async () => {
-      const res = await axiosInstance.get("/category");
-      return res.data.map((category: { id: string; name: string }) => ({
-        value: category.id,
-        label: category.name,
-      }));
-    },
-  });
-
-  const handleCategoryChange = (
-    newValue: MultiValue<CategoryOption>,
-    actionMeta: ActionMeta<CategoryOption>
-  ) => {
-    const selectedCategories = newValue.map(option => option.label);
-    return selectedCategories;
-  };
+  if (loading) return <Spinner />;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      <PageTitle title="Edit Subscription" />
-      {mutation.error && <div className="text-red-500">{(mutation.error as Error).message}</div>}
-      {product ? (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="name">Name</label>
-            <Controller
-              name="name"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} id="name" type="text" disabled={mutation.isPending} className={`${errors.name ? 'border-red-500' : ''}`} />
-              )}
-            />
-            {errors.name && <p className="text-red-500">{errors.name.message}</p>}
-          </div>
+      <h1 className="text-2xl font-bold">Edit Subscription</h1>
 
-          <div className="flex flex-col gap-2">
-            <label htmlFor="description">Description</label>
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <Textarea {...field} id="description" disabled={mutation.isPending} className={`${errors.description ? 'border-red-500' : ''}`} />
-              )}
-            />
-            {errors.description && <p className="text-red-500">{errors.description.message}</p>}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="price">Price</label>
-            <Controller
-              name="price"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} id="price" type="number" step="0.01" disabled={mutation.isPending} className={`${errors.price ? 'border-red-500' : ''}`} />
-              )}
-            />
-            {errors.price && <p className="text-red-500">{errors.price.message}</p>}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="categories">Categories</label>
-            <Controller
-              name="categories"
-              control={control}
-              render={({ field }) => (
-                loadingCategories ? (
-                  <Spinner size="md" />
-                ) : (
-                  <CreatableSelect
-                    isMulti
-                    isDisabled={mutation.isPending}
-                    options={categories_data}
-                    value={field.value ? field.value.map(category => ({
-                      value: category,
-                      label: category
-                    })) : []}
-                    onChange={(newValue, actionMeta) => {
-                      const selectedCategories = handleCategoryChange(newValue, actionMeta);
-                      field.onChange(selectedCategories);
-                    }}
-                    isLoading={loadingCategories}
-                    placeholder="Select or create categories"
-                  />
-                )
-              )}
-            />
-            {errors.categories && <p className="text-red-500">{errors.categories.message}</p>}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover" />
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        {/* Domain Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="domainName">Domain Name</label>
+          <Controller
+            name="domainName"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="domainName"
+                className={errors.domainName ? "border-red-500" : ""}
+              />
             )}
-            <label htmlFor="image">Product Image</label>
-            <Input
-              id="image"
-              type="file"
-              onChange={handleImageChange}
-              className="border p-2 rounded"
-              accept="image/*"
-              disabled={mutation.isPending}
-            />
-          </div>
+          />
+          {errors.domainName && (
+            <p className="text-red-500">{errors.domainName.message}</p>
+          )}
+        </div>
 
-          <div className="flex justify-between items-center">
-            <Button type="submit" variant="default" disabled={mutation.isPending}>
-              {mutation.isPending ? <Spinner size="sm" /> : "Update Product"}
-            </Button>
-          </div>
-        </form>
-      ) : (
-        <Spinner size="lg" />
-      )}
+        {/* Client Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="clientName">Client Name</label>
+          <Controller
+            name="clientName"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="clientName"
+                className={errors.clientName ? "border-red-500" : ""}
+              />
+            )}
+          />
+          {errors.clientName && (
+            <p className="text-red-500">{errors.clientName.message}</p>
+          )}
+        </div>
+
+        {/* Phone Number */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="phoneNumber">Phone Number</label>
+          <Controller
+            name="phoneNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="phoneNumber"
+                className={errors.phoneNumber ? "border-red-500" : ""}
+              />
+            )}
+          />
+          {errors.phoneNumber && (
+            <p className="text-red-500">{errors.phoneNumber.message}</p>
+          )}
+        </div>
+
+        {/* Submission Date */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="submissionDate">Submission Date</label>
+          <Controller
+            name="submissionDate"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} type="date" id="submissionDate" />
+            )}
+          />
+          {errors.submissionDate && (
+            <p className="text-red-500">{errors.submissionDate.message}</p>
+          )}
+        </div>
+
+        {/* Activation Date */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="activationDate">Activation Date</label>
+          <Controller
+            name="activationDate"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} type="date" id="activationDate" />
+            )}
+          />
+          {errors.activationDate && (
+            <p className="text-red-500">{errors.activationDate.message}</p>
+          )}
+        </div>
+
+        {/* Expiry Date */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="expiryDate">Expiry Date</label>
+          <Controller
+            name="expiryDate"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} type="date" id="expiryDate" />
+            )}
+          />
+          {errors.expiryDate && (
+            <p className="text-red-500">{errors.expiryDate.message}</p>
+          )}
+        </div>
+
+        {/* Price Sold */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="price">Price Sold</label>
+          <Controller
+            name="price"
+            control={control}
+            render={({ field }) => (
+              <Input {...field} id="price" />
+            )}
+          />
+          {errors.price && <p className="text-red-500">{errors.price.message}</p>}
+        </div>
+
+        {/* Status */}
+        <div className="flex flex-col gap-2">
+          <label>Status</label>
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <select {...field} className="p-3 border rounded-md">
+                {Object.values(StatusEnum).map((status) => (
+                  <option key={status} value={status}>
+                    {status.replace("_", " ")}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          {errors.status && <p className="text-red-500">{errors.status.message}</p>}
+        </div>
+
+        {/* Payment Method */}
+        <div className="flex flex-col gap-2">
+          <label>Payment Method</label>
+          <Controller
+            name="paymentMethod"
+            control={control}
+            render={({ field }) => (
+              <select {...field} className="p-3 border rounded-md">
+                {Object.values(PaymentMethodEnum).map((method) => (
+                  <option key={method} value={method}>
+                    {method.replace("_", " ")}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          {errors.paymentMethod && (
+            <p className="text-red-500">{errors.paymentMethod.message}</p>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <Button type="submit" variant="default">
+          Update
+        </Button>
+      </form>
     </div>
   );
 };

@@ -57,12 +57,12 @@ export default function Sidebar({}: Props) {
           <div className="flex-grow">
             <Nav
               links={[
-                // {
-                //   title: "Dashboard",
-                //   href: "/",
-                //   icon: LayoutDashboard,
-                //   variant: "default",
-                // },
+                {
+                  title: "Dashboard",
+                  href: "/",
+                  icon: LayoutDashboard,
+                  variant: "default",
+                },
 
                 // {
                 //   title: "Users",

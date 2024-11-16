@@ -76,7 +76,7 @@ const EditPlan = () => {
       setLoading(false);
     } else {
       axiosInstance
-        .get(`/plans/${id}`)
+        .get(`/products/${id}`)
         .then((res) => {
           reset(res.data);
           setLoading(false);
@@ -89,20 +89,19 @@ const EditPlan = () => {
   }, [id, location.state, reset]);
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) =>
-      axiosInstance.put(`/plans-dashboard/${id}`, data),
+    mutationFn: (data: any) =>
+      axiosInstance.put(`/products/${id}`, data),
     onSuccess: () => {
-      navigate("/plans");
+      navigate("/products");
     },
     onError: () => {
       setError("Failed to update the plan");
     },
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: any) => {
     const { advantages, ...rest } = data;
-    console.log(advantages);
-    // mutation.mutate(data);
+    mutation.mutate(rest);
   };
 
   if (loading) return <Spinner />;
@@ -277,7 +276,7 @@ const EditPlan = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
-          <Button variant="ghost" onClick={() => navigate("/plans")}>
+          <Button variant="ghost" onClick={() => navigate("/products")}>
             Cancel
           </Button>
           <Button type="submit" disabled={mutation.isPending}>

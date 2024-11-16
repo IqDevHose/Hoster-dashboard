@@ -48,7 +48,7 @@ const EditAdmin = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return await axiosInstance.put(`/auth/admins/${id}`, data);
+      return await axiosInstance.put(`/users/${id}`, data);
     },
     onSuccess: () => {
       navigate("/admins");

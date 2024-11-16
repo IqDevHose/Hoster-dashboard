@@ -1,59 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import PageTitle from "@/components/PageTitle";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useParams } from "react-router-dom";
 import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import Loading from "@/components/Loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+enum ServiceRequiredEnum {
+  domain_registration = "domain_registration",
+  domain_registration_with_hosting = "domain_registration_with_hosting",
+  ecommerce_website = "ecommerce_website",
+  portfolio_website = "portfolio_website",
+  other = "other",
+}
+
+enum LeadStatusEnum {
+  cold_lead = "cold_lead",
+  hot_lead = "hot_lead",
+  unsure = "unsure",
+}
 
 const schema = z.object({
-  domain: z.string().min(1, "Domain name is required"),
-  domainAlt1: z.string().min(1, "Alternative domain is required"),
-  domainAlt2: z.string().optional(),
-  domainPurpose: z.enum([
-    "art_gallery",
-    "company",
-    "ecommerce",
-    "educational",
-    "keep_the_domain",
-    "mobile_app",
-    "news_platform",
-    "promotional",
-    "personal_blog",
-    "comunity",
-    "other",
-  ]),
-  domainDuration: z.enum(["year", "two_year", "three_year"]),
-  domainType: z
-    .enum([".iq", ".com.iq", ".net.iq", ".org.iq", ".name.iq", ".tv.iq"])
-    .optional(),
-  applicantName: z.string().min(2, "Name must be at least 2 characters"),
-  applicantDocType: z.enum(["national_id", "passport", "other"]),
-  applicantDocFile: z.any().optional(),
-  applicantGovernorate: z.string().min(1, "Governorate is required"),
-  applicantCity: z.string().min(1, "City is required"),
-  applicantStreet: z.string().optional(),
-  applicantPhone: z.string().min(1, "Phone number is required"),
-  applicantEmail: z.string().email("Invalid email address"),
-  companyName: z.string().min(1, "Company name is required"),
-  companyType: z.string().min(1, "Company type is required"),
-  commercialRegistrationNumber: z.string().optional(),
-  companyMainAddress: z.string().optional(),
-  companyPhone: z.string().optional(),
-  companyEmail: z.string().email("Invalid company email address").optional(),
-  isApplicantManager: z.boolean(),
-  managerName: z.string().optional(),
-  managerAddress: z.string().optional(),
-  managerPhone: z.string().optional(),
-  managerEmail: z.string().email("Invalid manager email address").optional(),
-  planId: z.string()
+  leadName: z.string().min(1, "Lead name is required"),
+  company: z.string().min(1, "Company name is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  serviceRequired: z.nativeEnum(ServiceRequiredEnum, {
+    errorMap: () => ({ message: "Service required is invalid" }),
+  }),
+  leadStatus: z.nativeEnum(LeadStatusEnum, {
+    errorMap: () => ({ message: "Lead status is invalid" }),
+  }),
+  notes: z.string().optional(),
+  date: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -61,52 +50,53 @@ type FormData = z.infer<typeof schema>;
 const EditLead = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  const { data: lead, isLoading } = useQuery({
-    queryKey: ["lead", id],
-    queryFn: async () => {
-      const response = await axiosInstance.get(`/records-dashboard/${id}`);
-      return response.data;
-    },
-  });
+  const location = useLocation();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
-    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      leadName: "",
+      company: "",
+      phoneNumber: "",
+      serviceRequired: ServiceRequiredEnum.other,
+      leadStatus: LeadStatusEnum.unsure,
+      notes: "",
+      date: "",
+    },
   });
 
   useEffect(() => {
-    if (lead) {
-      reset(lead);
+    if (location.state?.lead) {
+      reset(location.state.lead);
+      setLoading(false);
+    } else {
+      axiosInstance
+        .get(`/sales/${id}`)
+        .then((res) => {
+          reset(res.data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setError("Failed to load lead data");
+          setLoading(false);
+        });
     }
-  }, [lead, reset]);
+  }, [id, location.state, reset]);
 
   const mutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const formData = new FormData();
-
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'applicantDocFile' && value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, String(value));
-        }
-      });
-
-      return await axiosInstance.put(`/records-dashboard/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    },
+    mutationFn: (data: FormData) => axiosInstance.put(`/sales/${id}`, data),
     onSuccess: () => {
-      navigate("/leads");
+      navigate("/sales");
+    },
+    onError: () => {
+      setError("Failed to update the lead");
     },
   });
 
@@ -114,170 +104,186 @@ const EditLead = () => {
     mutation.mutate(data);
   };
 
-  const isApplicantManager = watch("isApplicantManager");
-  const applicantName = watch("applicantName");
-  const applicantEmail = watch("applicantEmail");
-  const applicantPhone = watch("applicantPhone");
-  const applicantStreet = watch("applicantStreet");
-
-  useEffect(() => {
-    if (isApplicantManager) {
-      setValue("managerName", applicantName);
-      setValue("managerEmail", applicantEmail);
-      setValue("managerPhone", applicantPhone);
-      setValue("managerAddress", applicantStreet);
-    }
-  }, [isApplicantManager, applicantName, applicantEmail, applicantPhone, applicantStreet, setValue]);
-
-  if (isLoading) return <Loading />;
+  if (loading) return <Spinner />;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      <PageTitle title="Edit Sale" />
-      {mutation.error && (
-        <div className="text-red-500">{(mutation.error as Error).message}</div>
-      )}
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {Object.entries(schema.shape).map(([fieldName, fieldSchema]) => (
-          <div className="flex flex-col gap-2" key={fieldName}>
-            <label htmlFor={fieldName}>{fieldName}</label>
-            <Controller
-              name={fieldName as keyof FormData}
-              control={control}
-              render={({ field }) => {
-                if (fieldName === "isApplicantManager") {
-                  return (
-                    <Switch
-                      checked={field.value as boolean}
-                      onCheckedChange={field.onChange}
-                      disabled={mutation.isPending}
-                    />
-                  );
-                } else if (fieldName === "domainType") {
-                  return (
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                      disabled={mutation.isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select domain type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value=".iq">IQ</SelectItem>
-                        <SelectItem value=".com.iq">COM IQ</SelectItem>
-                        <SelectItem value=".net.iq">NET IQ</SelectItem>
-                        <SelectItem value=".org.iq">ORG IQ</SelectItem>
-                        <SelectItem value=".name.iq">NAME IQ</SelectItem>
-                        <SelectItem value=".tv.iq">TV IQ</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  );
-                } else if (fieldName === "domainPurpose") {
-                  return (
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                      disabled={mutation.isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select domain purpose" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="art_gallery">Art Gallery</SelectItem>
-                        <SelectItem value="company">Company</SelectItem>
-                        <SelectItem value="ecommerce">E-commerce</SelectItem>
-                        <SelectItem value="educational">Educational</SelectItem>
-                        <SelectItem value="keep_the_domain">Keep the Domain</SelectItem>
-                        <SelectItem value="mobile_app">Mobile App</SelectItem>
-                        <SelectItem value="news_platform">News Platform</SelectItem>
-                        <SelectItem value="promotional">Promotional</SelectItem>
-                        <SelectItem value="personal_blog">Personal Blog</SelectItem>
-                        <SelectItem value="comunity">Community</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  );
-                } else if (fieldName === "domainDuration") {
-                  return (
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                      disabled={mutation.isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select duration" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="year">1 Year</SelectItem>
-                        <SelectItem value="two_year">2 Years</SelectItem>
-                        <SelectItem value="three_year">3 Years</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  );
-                } else if (fieldName === "applicantDocType") {
-                  return (
-                    <Select
-                      value={String(field.value)}
-                      onValueChange={field.onChange}
-                      disabled={mutation.isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select document type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="national_id">National ID</SelectItem>
-                        <SelectItem value="passport">Passport</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  );
-                } else if (fieldName === "applicantDocFile") {
-                  return (
-                    <input
-                      id={fieldName}
-                      type="file"
-                      disabled={mutation.isPending}
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          field.onChange(file);
-                        }
-                      }}
-                      className={`${errors.applicantDocFile ? "border-red-500" : ""}`}
-                    />
-                  );
-                } else {
-                  return (
-                    <Input
-                      {...field}
-                      id={fieldName}
-                      type={fieldName.includes('Email') ? 'email' : 'text'}
-                      disabled={mutation.isPending}
-                      className={`${errors[fieldName as keyof FormData] ? 'border-red-500' : ''}`}
-                      value={typeof field.value === 'boolean' ?
-                        String(field.value) :
-                        field.value?.toString() ?? ''
-                      }
-                    />
-                  );
-                }
-              }}
-            />
-            {errors[fieldName as keyof FormData] && (
-              <p className="text-red-500">
-                {errors[fieldName as keyof FormData]?.message?.toString()}
-              </p>
-            )}
-          </div>
-        ))}
+      <PageTitle title="Edit Lead" />
 
-        <div className="flex justify-start gap-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+        {/* Lead Name */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="leadName">Lead Name</label>
+          <Controller
+            name="leadName"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="leadName"
+                disabled={mutation.isPending}
+                className={errors.leadName ? "border-red-500" : ""}
+              />
+            )}
+          />
+          {errors.leadName && (
+            <p className="text-red-500">{errors.leadName.message}</p>
+          )}
+        </div>
+
+        {/* Company */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="company">Company</label>
+          <Controller
+            name="company"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="company"
+                disabled={mutation.isPending}
+                className={errors.company ? "border-red-500" : ""}
+              />
+            )}
+          />
+          {errors.company && (
+            <p className="text-red-500">{errors.company.message}</p>
+          )}
+        </div>
+
+        {/* Phone Number */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="phoneNumber">Phone Number</label>
+          <Controller
+            name="phoneNumber"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="phoneNumber"
+                disabled={mutation.isPending}
+                className={errors.phoneNumber ? "border-red-500" : ""}
+              />
+            )}
+          />
+          {errors.phoneNumber && (
+            <p className="text-red-500">{errors.phoneNumber.message}</p>
+          )}
+        </div>
+
+        {/* Service Required */}
+        <div className="flex flex-col gap-2">
+          <label>Service Required</label>
+          <Controller
+            name="serviceRequired"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={mutation.isPending}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(ServiceRequiredEnum).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.serviceRequired && (
+            <p className="text-red-500">{errors.serviceRequired.message}</p>
+          )}
+        </div>
+
+        {/* Lead Status */}
+        <div className="flex flex-col gap-2">
+          <label>Lead Status</label>
+          <Controller
+            name="leadStatus"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={mutation.isPending}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(LeadStatusEnum).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.leadStatus && (
+            <p className="text-red-500">{errors.leadStatus.message}</p>
+          )}
+        </div>
+
+        {/* Date */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="date">Select Date</label>
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <Input
+                {...field}
+                id="date"
+                type="date"
+                disabled={mutation.isPending}
+                className={`${errors.date ? "border-red-500" : ""}`}
+              />
+            )}
+          />
+          {errors.date && <p className="text-red-500">{errors.date.message}</p>}
+        </div>
+
+        {/* Notes */}
+        <div className="flex flex-col gap-2">
+          <label htmlFor="notes">Notes</label>
+          <Controller
+            name="notes"
+            control={control}
+            render={({ field }) => (
+              <textarea
+                {...field}
+                id="notes"
+                disabled={mutation.isPending}
+                rows={4}
+                className={`border border-gray-300 rounded-md p-2 ${
+                  errors.notes ? "border-red-500" : ""
+                }`}
+                placeholder="Enter your notes here..."
+              />
+            )}
+          />
+          {errors.notes && (
+            <p className="text-red-500">{errors.notes.message}</p>
+          )}
+        </div>
+
+        {mutation.error && (
+          <div className="text-red-500">
+            {(mutation.error as Error).message}
+          </div>
+        )}
+        {/* Submit Button */}
+        <div className="flex justify-between items-center">
           <Button type="submit" variant="default" disabled={mutation.isPending}>
-            {mutation.isPending ? <Spinner size="sm" /> : "Save Changes"}
-          </Button>
-          <Button variant="ghost" onClick={() => navigate("/leads")}>
-            Cancel
+            {mutation.isPending ? <Spinner size="sm" /> : "Update"}
           </Button>
         </div>
       </form>

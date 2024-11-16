@@ -8,62 +8,26 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, PlusIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Select,
   SelectTrigger,
   SelectContent,
-  SelectGroup,
-  SelectLabel,
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
 
-// Define the Plans type
-type Plans = {
-  id: string;
-  name: {
-    ar: string;
-    en: string;
-  };
-  price: string;
-  description: {
-    ar: string;
-    en: string;
-  };
-  status: RecordStatusEnum;
-};
-
-// Enum for record status
-export enum RecordStatusEnum {
-  COLD_LEAD= "cold_lead",
-  HOT_LEAD= "hot_lead",
-  UNSURE= "unsure",
-}
-
-// // Define groups for statuses
-const statusGroups = {
-  Type: [
-    RecordStatusEnum.COLD_LEAD,
-    RecordStatusEnum.HOT_LEAD,
-    RecordStatusEnum.UNSURE,
-  ]
-};
-
 export default function Subscriptions() {
   const [userSearch, setUserSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<RecordStatusEnum | "">("");
+  const [statusFilter, setStatusFilter] = useState<string>("all"); // Filter by status
+  const [monthFilter, setMonthFilter] = useState<string>("all"); // Filter by month
+  const [yearFilter, setYearFilter] = useState<string>("all"); // Filter by year
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Plans | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const queryClient = useQueryClient();
-  const {
-    data: subscriptions,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
+  const { data: subscriptions, isLoading, isError, error } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: async () => {
       const res = await axiosInstance.get("/subscriptions");
@@ -76,24 +40,10 @@ export default function Subscriptions() {
     {
       accessorKey: "clientName",
       header: "Client",
-      cell: ({ row }) => {
-        return (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">{row.original.clientName}</div>
-          </div>
-        );
-      },
     },
     {
       accessorKey: "domainName",
       header: "Domain",
-      cell: ({ row }) => {
-        return (
-          <div className="flex gap-2 items-center">
-            <p>{row.original.domainName}</p>
-          </div>
-        );
-      },
     },
     {
       accessorKey: "phoneNumber",
@@ -115,13 +65,10 @@ export default function Subscriptions() {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const id = row.original.id; // Access the user's ID
+        const id = row.original.id;
+
         return (
           <div className="flex gap-2">
-            {/* <Link to= className="text-blue-600">
-              <PencilIcon className="w-5 h-5" />
-            </Link> */}
-
             <Link to={`/edit-subscription/${id}`} state={{ plan: row.original }}>
               <Button
                 variant="ghost"
@@ -131,15 +78,6 @@ export default function Subscriptions() {
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {/* <button
-              onClick={() => {
-                setSelectedProduct(row.original);
-                setModalOpen(true);
-              }}
-              className="text-red-600"
-            >
-              <TrashIcon className="w-5 h-5" />
-            </button> */}
           </div>
         );
       },
@@ -159,13 +97,26 @@ export default function Subscriptions() {
     );
   }
 
+  // Get unique years from data
+  const years = Array.from(
+    new Set(subscriptions.map((sub: any) => new Date(sub.expiryDate).getFullYear()))
+  ).sort((a, b) => a - b);
+
   // Filter data
   const filteredData = subscriptions.filter((subscription: any) => {
     const matchesSearch = subscription.clientName
       .toLowerCase()
       .includes(userSearch.toLowerCase());
-    const matchesStatus = statusFilter ? subscription.status === statusFilter : true;
-    return matchesSearch && matchesStatus;
+    const matchesStatus =
+      statusFilter === "all" || subscription.status === statusFilter;
+
+    const expiryDate = new Date(subscription.expiryDate);
+    const matchesMonth =
+      monthFilter === "all" || expiryDate.getMonth() === parseInt(monthFilter);
+    const matchesYear =
+      yearFilter === "all" || expiryDate.getFullYear() === parseInt(yearFilter);
+
+    return matchesSearch && matchesStatus && matchesMonth && matchesYear;
   });
 
   // Handle delete action
@@ -198,31 +149,58 @@ export default function Subscriptions() {
         ]}
       />
 
-      {/* <div className="flex gap-3 items-center mb-4">  
+      <div className="flex gap-3 items-center mb-4">
+        {/* Filter by Status */}
         <Select
           value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as RecordStatusEnum | "")
-          }
+          onValueChange={(value) => setStatusFilter(value)}
         >
           <SelectTrigger className="w-56">
-            <SelectValue placeholder="Select status" />
+            <SelectValue placeholder="Filter by Status" />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(statusGroups).map(([groupLabel, statuses]) => (
-              <SelectGroup key={groupLabel || ""}>
-                <SelectLabel>{groupLabel}</SelectLabel>
-                {statuses.map((status) => (
-                  <SelectItem key={status || ""} value={status || "em"}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ))}
-            <SelectItem defaultChecked value="all">All</SelectItem>
+            <SelectItem value="all">Status</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="expired">Expired</SelectItem>
           </SelectContent>
         </Select>
-      </div> */}
+
+        {/* Filter by Month */}
+        <Select
+          value={monthFilter}
+          onValueChange={(value) => setMonthFilter(value)}
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Filter by Month" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Month</SelectItem>
+            {Array.from({ length: 12 }, (_, i) => (
+              <SelectItem key={i} value={String(i)}>
+                {new Date(0, i).toLocaleString("default", { month: "long" })}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Filter by Year */}
+        <Select
+          value={yearFilter}
+          onValueChange={(value) => setYearFilter(value)}
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Filter by Year" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Year</SelectItem>
+            {years.map((year) => (
+              <SelectItem key={year} value={String(year)}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <DataTable
         editLink="/edit-subscription"
@@ -240,7 +218,7 @@ export default function Subscriptions() {
         onConfirm={() => {
           if (selectedProduct) handleDelete(selectedProduct.id);
         }}
-        message={`Are you sure you want to delete the subscription "${selectedProduct?.name.en}"?`}
+        message={`Are you sure you want to delete the subscription "${selectedProduct?.name?.en}"?`}
       />
     </div>
   );
