@@ -19,6 +19,7 @@ const planSchema = z.object({
     en: z.string().min(10, "Description in English must be at least 10 characters"),
     ar: z.string().min(10, "Description in Arabic must be at least 10 characters"),
   }),
+  isActive: z.boolean(),
   price: z
     .string()
     .transform((val) => parseFloat(val))
@@ -53,14 +54,15 @@ const AddPlan: React.FC = () => {
       title: { en: "", ar: "" },
       description: { en: "", ar: "" },
       price: 0,
+      isActive: false
     },
   });
 
   const mutation = useMutation({
-    mutationFn: (data: FormData) => axiosInstance.post(`/plans-dashboard`, data),
+    mutationFn: (data: FormData) => axiosInstance.post(`/products`, data),
     onError: () => setError("Failed to add Plan"),
     onSuccess: () => {
-      navigate("/plans");
+      navigate("/products");
       reset();
       setAdvantages([]); // Clear advantages
     },
@@ -89,7 +91,14 @@ const AddPlan: React.FC = () => {
     console.log("Formatted Advantages: ", filteredAdvantages);
   
     const formattedData = { ...data, price: Number(data.price), advantages: filteredAdvantages };
-    mutation.mutate(formattedData);  };
+
+    mutation.mutate({
+      title: formattedData.title,
+      description: formattedData.description,
+      price: formattedData.price,
+      isActive: formattedData.isActive,
+    });
+  };
 
   const addAdvantage = () => {
     setAdvantages([...advantages, { name: { en: "", ar: "" } }]);
@@ -191,6 +200,23 @@ const AddPlan: React.FC = () => {
             )}
           />
           {errors.price && <p className="text-red-500">{errors.price.message}</p>}
+        </div>
+
+        {/* IsActive Checkbox */}
+        <div className="flex items-center gap-2 py-2 px-2 bg-blue-50">
+          <Controller
+            name="isActive"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="checkbox"
+                id="isActive"
+                className="w-4 h-4"
+              />
+            )}
+          />
+          <label htmlFor="isActive" className="">Activate after creation</label>
         </div>
 
         {/* Advantages Section */}

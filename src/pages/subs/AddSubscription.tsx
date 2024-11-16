@@ -9,14 +9,14 @@ import { Button } from "@/components/ui/button";
 
 // Define your enums
 export enum StatusEnum {
-  EXPIRED = 'Expired / Renewal Required',
-  IN_PROGRESS = 'Activation In Progress',
+  EXPIRED="expired",
+  IN_PROGRESS="in_progress"
 }
 
 export enum PaymentMethodEnum {
+  QI = 'qi_card',
   CASH = 'cash',
   ZAIN_CASH = 'zain_cash',
-  QI = 'qi_card',
   BAGHDAD_BRANCH = 'baghdad_branch',
 }
 
@@ -25,11 +25,11 @@ const schema = z.object({
   domainName: z.string().min(1, "Domain Name is required"),
   clientName: z.string().min(1, "Client Name is required"),
   phoneNumber: z.string().min(1, "Phone Number is required"),
-  documentLink: z.string().url("Invalid document link"),
+  documentsLink: z.string(),
   submissionDate: z.string().min(1, "Submission Date is required"),
   activationDate: z.string().min(1, "Activation Date is required"),
   expiryDate: z.string().min(1, "Expiry Date is required"),
-  priceSold: z.string().min(1, "Price Sold is required"),
+  price: z.string().min(1, "Price Sold is required"),
   status: z.string().min(1, "Status is required"),
   paymentMethod: z.string().min(1, "Payment Method is required"),
 });
@@ -39,11 +39,11 @@ type FormData = {
   domainName: string;
   clientName: string;
   phoneNumber: string;
-  documentLink: string;
+  documentsLink: string;
   submissionDate: string;
   activationDate: string;
   expiryDate: string;
-  priceSold: string;
+  price: string;
   status: string;
   paymentMethod: string;
 };
@@ -67,11 +67,7 @@ export default function SubscriptionForm() {
       Object.entries(data).forEach(([key, value]) => {
         formData.append(key, String(value));
       });
-      return await axiosInstance.post("/records-dashboard/subscription/create", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      return await axiosInstance.post("/subscriptions", formData);
     },
     onSuccess: () => {
       navigate("/subscriptions");
@@ -82,15 +78,16 @@ export default function SubscriptionForm() {
   });
 
   // Form submit handler
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    mutation.mutate(data); // Trigger mutation with the form data
+  const onSubmit = (data: any) => {
+    const formattedData = { ...data, price: Number(data.price) };
+    console.log(formattedData)
+    mutation.mutate(formattedData);
   };
 
   return (
     <>
       <h1 className="text-2xl font-bold mb-6">Add Subscription</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6 bg-white rounded-lg shadow-lg">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
         
         {/* Domain Name */}
         <div className="form-group">
@@ -133,14 +130,14 @@ export default function SubscriptionForm() {
 
         {/* Document Link */}
         <div className="form-group">
-          <label htmlFor="documentLink" className="block font-medium mb-2">Document Link</label>
+          <label htmlFor="documentsLink" className="block font-medium mb-2">Document Link</label>
           <Controller
-            name="documentLink"
+            name="documentsLink"
             control={control}
             render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
           />
-          {errors.documentLink && (
-            <p className="text-red-500 text-sm mt-1">{errors.documentLink.message}</p>
+          {errors.documentsLink && (
+            <p className="text-red-500 text-sm mt-1">{errors.documentsLink.message}</p>
           )}
         </div>
 
@@ -185,14 +182,14 @@ export default function SubscriptionForm() {
 
         {/* Price Sold */}
         <div className="form-group">
-          <label htmlFor="priceSold" className="block font-medium mb-2">Price Sold</label>
+          <label htmlFor="price" className="block font-medium mb-2">Price Sold</label>
           <Controller
-            name="priceSold"
+            name="price"
             control={control}
             render={({ field }) => <Input {...field} className="w-full p-3 border rounded-md shadow-sm focus:ring-2 focus:ring-blue-500" />}
           />
-          {errors.priceSold && (
-            <p className="text-red-500 text-sm mt-1">{errors.priceSold.message}</p>
+          {errors.price && (
+            <p className="text-red-500 text-sm mt-1">{errors.price.message}</p>
           )}
         </div>
 

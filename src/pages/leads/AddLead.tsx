@@ -15,23 +15,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { useEffect } from "react";
 
+// Enums
+enum ServiceRequiredEnum {
+  domain_registration = "domain_registration",
+  domain_registration_with_hosting = "domain_registration_with_hosting",
+  ecommerce_website = "ecommerce_website",
+  portfolio_website = "portfolio_website",
+  other = "other",
+}
+
+enum LeadStatusEnum {
+  cold_lead = "cold_lead",
+  hot_lead = "hot_lead",
+  unsure = "unsure",
+}
+
+// Schema
 const schema = z.object({
   leadName: z.string().min(1, "Lead name is required"),
   company: z.string().min(1, "Company name is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  serviceRequired: z.enum([
-    "domain_registration",
-    "domain_hosting",
-    "ecommerce_website",
-    "portfolio_website",
-    "other",
-  ]),
-  leadStatus: z.enum(["cold_lead", "hot_lead", "unsure"]),
+  serviceRequired: z.nativeEnum(ServiceRequiredEnum, {
+    errorMap: () => ({ message: "Service required is invalid" }),
+  }),
+  leadStatus: z.nativeEnum(LeadStatusEnum, {
+    errorMap: () => ({ message: "Lead status is invalid" }),
+  }),
   notes: z.string().optional(),
-  date: z.string().optional(), // Optional date field
+  date: z.string().optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -49,24 +62,15 @@ const AddLead = () => {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, String(value));
-      });
 
-      return await axiosInstance.post("/records", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      return await axiosInstance.post("/sales", data);
     },
     onSuccess: () => {
-      navigate("/leads");
+      navigate("/sales");
     },
   });
 
   const onSubmit = (data: FormData) => {
-    console.log(data);
     mutation.mutate(data);
   };
 
@@ -75,16 +79,16 @@ const AddLead = () => {
       <PageTitle title="Add Sales" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-        {/* Sales Name */}
+        {/* Lead Name */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="SalesName">Sales Name</label>
+          <label htmlFor="leadName">Lead Name</label>
           <Controller
-            name="SalesName"
+            name="leadName"
             control={control}
             render={({ field }) => (
               <Input
                 {...field}
-                id="SalesName"
+                id="leadName"
                 disabled={mutation.isPending}
                 className={errors.leadName ? "border-red-500" : ""}
               />
@@ -151,19 +155,11 @@ const AddLead = () => {
                   <SelectValue placeholder="Select service" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="domain_registration">
-                    Domain Registration
-                  </SelectItem>
-                  <SelectItem value="domain_hosting">
-                    Domain Registration + Hosting
-                  </SelectItem>
-                  <SelectItem value="ecommerce_website">
-                    Ecommerce Website
-                  </SelectItem>
-                  <SelectItem value="portfolio_website">
-                    Portfolio Website
-                  </SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  {Object.values(ServiceRequiredEnum).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value.replace("_", " ")}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
@@ -173,9 +169,9 @@ const AddLead = () => {
           )}
         </div>
 
-        {/* sales Status */}
+        {/* Lead Status */}
         <div className="flex flex-col gap-2">
-          <label>sales Status</label>
+          <label>Lead Status</label>
           <Controller
             name="leadStatus"
             control={control}
@@ -189,9 +185,11 @@ const AddLead = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cold_lead">Cold Lead</SelectItem>
-                  <SelectItem value="hot_lead">Hot Lead</SelectItem>
-                  <SelectItem value="unsure">Unsure</SelectItem>
+                  {Object.values(LeadStatusEnum).map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value.replace("_", " ")}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
@@ -201,25 +199,23 @@ const AddLead = () => {
           )}
         </div>
 
-        {/* Date picker input */}
+        {/* Date */}
         <div className="flex flex-col gap-2">
-          <label htmlFor="selectedDate">Select Date</label>
+          <label htmlFor="date">Select Date</label>
           <Controller
-            name="selectedDate"
+            name="date"
             control={control}
             render={({ field }) => (
               <Input
                 {...field}
-                id="selectedDate"
+                id="date"
                 type="date"
                 disabled={mutation.isPending}
-                className={`${errors.leadStatus ? "border-red-500" : ""}`}
+                className={`${errors.date ? "border-red-500" : ""}`}
               />
             )}
           />
-          {errors.leadStatus && (
-            <p className="text-red-500">{errors.leadStatus.message}</p>
-          )}
+          {errors.date && <p className="text-red-500">{errors.date.message}</p>}
         </div>
 
         {/* Notes */}
@@ -233,7 +229,7 @@ const AddLead = () => {
                 {...field}
                 id="notes"
                 disabled={mutation.isPending}
-                rows={4} // Adjust the number of rows to control the height
+                rows={4}
                 className={`border border-gray-300 rounded-md p-2 ${
                   errors.notes ? "border-red-500" : ""
                 }`}
@@ -263,3 +259,4 @@ const AddLead = () => {
 };
 
 export default AddLead;
+
