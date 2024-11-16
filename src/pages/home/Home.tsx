@@ -9,15 +9,30 @@ import axiosInstance from "@/utils/AxiosInstance";
 import { RecentSale } from "@/utils/type";
 
 // API functions
-const fetchOrderStats = () => axiosInstance.get('/statics/order-stats').then(res => res.data);
-const fetchRevenueStats = () => axiosInstance.get('/statics/revenue-stats').then(res => res.data);
-const fetchSalesStats = () => axiosInstance.get('/statics/sales-stats').then(res => res.data);
-const fetchRecentSales = () => axiosInstance.get('/statics/recent-sales').then(res => res.data);
+const fetchSubscriptionStats = async () => {
+  const res = await axiosInstance.get('/stats/subscription-stats');
+  return res.data;
+};
+
+const fetchRevenueStats = async () => {
+  const res = await axiosInstance.get('/stats/revenue-stats');
+  return res.data;
+};
+
+const fetchSalesStats = async () => {
+  const res = await axiosInstance.get('/stats/sales-stats');
+  return res.data;
+};
+
+const fetchRecentSales = async () => {
+  const res = await axiosInstance.get('/stats/recent-sales');
+  return res.data;
+};
 
 export default function Home() {
-  const { data: orderStats } = useQuery({
-    queryKey: ['orderStats'],
-    queryFn: fetchOrderStats,
+  const { data: SubscriptionStats } = useQuery({
+    queryKey: ['SubscriptionStats'],
+    queryFn: fetchSubscriptionStats,
   });
 
   const { data: revenueStats } = useQuery({
@@ -38,14 +53,14 @@ export default function Home() {
   const cardData = [
     {
       label: "Total Revenue",
-      amount: revenueStats ? `$${revenueStats.totalRevenue}` : "Loading...",
+      amount: revenueStats ? `$${revenueStats.totalRevenue.toFixed(2)}` : "Loading...",
       description: "From shipped and delivered orders",
       icon: DollarSign,
     },
     {
-      label: "Total Orders",
-      amount: orderStats ? orderStats.totalOrders.toString() : "Loading...",
-      description: `${orderStats?.pendingOrders || 0} pending`,
+      label: "Total Subscriptions",
+      amount: SubscriptionStats ? SubscriptionStats.totalOrders.toString() : "Loading...",
+      description: `${SubscriptionStats?.pendingOrders || 0} pending`,
       icon: Users,
     },
     {
@@ -56,11 +71,10 @@ export default function Home() {
     },
     {
       label: "Total Products",
-      amount: orderStats ? orderStats.totalProducts.toString() : "Loading...",
+      amount: SubscriptionStats ? SubscriptionStats.totalProducts.toString() : "Loading...",
       description: "Items in stock",
       icon: Box,
     },
-
   ];
 
   return (
@@ -87,9 +101,9 @@ export default function Home() {
           <p className="p-4 font-semibold">Revenue Trend (Line Chart)</p>
           <LineChart />
         </CardContent>
-      </section> */}
+      </section>
 
-      {/* <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 transition-all lg:grid-cols-2">
         <CardContent className="flex gap-4">
           <section>
             <p>Recent Sales</p>
@@ -99,14 +113,14 @@ export default function Home() {
               recentSales.map((data: RecentSale) => (
                 <SalesCard
                   key={data.id}
-                  image={data.image}
-                  email={data.email}
-                  name={data.name}
-                  salesAmount={`${data.salesAmount}`}
+                  image={data.image || "/placeholder.jpg"} // Add a placeholder for missing images
+                  email={data.email || "N/A"} // Assuming RecentSale has email; adapt as needed
+                  name={data.leadName || "Unknown"} // Use `leadName` for recent sales
+                  salesAmount={`Date: ${data.date || "N/A"}`} // Show date as salesAmount
                 />
               ))
             ) : (
-              <p className="text-center text-gray-500 w-full h-full ">No recent data</p>
+              <p className="text-center text-gray-500 w-full h-full">No recent data</p>
             )}
           </div>
         </CardContent>
