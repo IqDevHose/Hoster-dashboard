@@ -109,7 +109,7 @@ const EditLead = () => {
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      <PageTitle title="Edit Lead" />
+      <PageTitle title="Edit Sale" />
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
         {/* Lead Name */}

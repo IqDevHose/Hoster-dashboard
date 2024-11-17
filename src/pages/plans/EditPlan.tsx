@@ -109,7 +109,7 @@ const EditPlan = () => {
 
   return (
     <div className="p-10">
-      <PageTitle title="Edit Plan" />
+      <PageTitle title="Edit Product" />
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col gap-5 pt-5 w-full mx-auto"

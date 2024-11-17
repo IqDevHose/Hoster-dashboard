@@ -9,6 +9,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Loading from "@/components/Loading";
+import { PencilIcon } from "lucide-react";
 
 export default function Leads() {
   const [userSearch, setUserSearch] = useState("");
@@ -84,7 +85,7 @@ export default function Leads() {
                 size="icon"
                 className="text-blue-500 hover:text-blue-600"
               >
-                Edit
+                <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
           </div>
