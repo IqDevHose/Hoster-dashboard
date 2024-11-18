@@ -16,6 +16,8 @@ const schema = z.object({
   role: z.string().default("admin")
 })
 
+// test
+
 type FormData = z.infer<typeof schema>;
 
 const AddAdmin = () => {
