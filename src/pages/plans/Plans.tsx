@@ -10,18 +10,19 @@ import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon, TrashIcon, Power } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  PencilIcon,
+  PlusIcon,
+  Power,
+  DollarSign,
+  FileText,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-type Category = {
-  id: string;
-  name: string;
-};
-
-// Define the Plans type with advantages
 type Plans = {
   id: string;
-  name: {
+  title: {
     ar: string;
     en: string;
   };
@@ -30,18 +31,17 @@ type Plans = {
     ar: string;
     en: string;
   };
+  isActive: boolean;
   advantages?: {
-    [key: string]: string; // Adjust based on the structure of `advantages`
+    [key: string]: string;
   };
 };
 
-// Main component for PlansPage
 export default function Plans() {
   const [userSearch, setUserSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Plans | null>(null);
 
-  // Query to fetch plans
   const queryClient = useQueryClient();
   const {
     data: plans,
@@ -53,22 +53,90 @@ export default function Plans() {
       const res = await axiosInstance.get("/products");
       return res.data;
     },
-    refetchOnWindowFocus: true, // Automatically refetch on window focus
+    refetchOnWindowFocus: true,
   });
 
-  // Define the columns for the DataTable
-  const columns: ColumnDef<any>[] = [
+  if (isPending) return <Loading />;
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-full">
+        Error loading products
+      </div>
+    );
+
+  const filteredData = plans.filter((plan: Plans) =>
+    plan?.title?.en?.toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  // Mobile card view renderer
+  const MobileCardView = ({ data }: { data: Plans[] }) => (
+    <div className="space-y-4">
+      {data.map((plan, index) => (
+        <Card key={index} className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg font-medium">
+                  {plan.title.en}
+                </CardTitle>
+                <Badge
+                  variant={plan.isActive ? "success" : "destructive"}
+                  className="mt-2"
+                >
+                  {plan.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                <Link to={`/edit-product/${plan.id}`} state={{ plan }}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 hover:text-blue-600"
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`${
+                    plan.isActive
+                      ? "bg-green-600 hover:bg-green-600/95"
+                      : "bg-red-600 hover:bg-red-600/95"
+                  } text-white hover:text-white`}
+                  onClick={() => {
+                    setSelectedProduct(plan);
+                    setModalOpen(true);
+                  }}
+                >
+                  <Power className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <DollarSign className="h-4 w-4" />
+              {plan.price}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              <span className="line-clamp-2">{plan.description.en}</span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  const columns: ColumnDef<Plans>[] = [
     {
       accessorKey: "title",
       header: "Plan Name",
       cell: ({ row }) => {
-        const planName = row.original?.title?.en || "Unnamed Plan"; // Fallback text
-
+        const planName = row.original?.title?.en || "Unnamed Plan";
         return (
           <div className="flex gap-2 items-center">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback>{planName.charAt(0)}</AvatarFallback>
-            </Avatar>
             <p>{planName}</p>
           </div>
         );
@@ -78,13 +146,11 @@ export default function Plans() {
       accessorKey: "description",
       header: "Description",
       cell: ({ row }) => {
-        const categoryDescription =
-          row.original.description?.en || "No description";
-
+        const description = row.original.description?.en || "No description";
         return (
           <div className="truncate w-32">
             <span className="block overflow-hidden whitespace-nowrap text-ellipsis">
-              {categoryDescription}
+              {description}
             </span>
           </div>
         );
@@ -98,14 +164,10 @@ export default function Plans() {
       accessorKey: "actions",
       header: "Actions",
       cell: ({ row }) => {
-        const id = row.original.id; // Access the plan ID
-
-        const isActive = row.original.isActive;
-
+        const plan = row.original;
         return (
           <div className="flex gap-2">
-            {/* Link to Edit plan */}
-            <Link to={`/edit-product/${id}`} state={{ plan: row.original }}>
+            <Link to={`/edit-product/${plan.id}`} state={{ plan }}>
               <Button
                 variant="ghost"
                 size="icon"
@@ -114,14 +176,17 @@ export default function Plans() {
                 <PencilIcon className="h-4 w-4" />
               </Button>
             </Link>
-            {/* Button to Delete plan */}
             <Button
               variant="ghost"
               size="icon"
-              className={`${isActive ? "bg-green-600 hover:bg-green-600/95" : "bg-red-600 hover:bg-red-600/95"}  text-white hover:text-white`}
+              className={`${
+                plan.isActive
+                  ? "bg-green-600 hover:bg-green-600/95"
+                  : "bg-red-600 hover:bg-red-600/95"
+              } text-white hover:text-white`}
               onClick={() => {
-                setSelectedProduct(row.original); // Set selected plan for deletion
-                setModalOpen(true); // Open confirmation modal
+                setSelectedProduct(plan);
+                setModalOpen(true);
               }}
             >
               <Power className="h-4 w-4" />
@@ -132,74 +197,69 @@ export default function Plans() {
     },
   ];
 
-  // Loading state
-  if (isPending) return <Loading />;
-
-  // Error state
-  if (error)
-    return (
-      <div className="flex justify-center items-center h-full self-center mx-auto">
-        Error loading product 
-      </div>
-    );
-
-  // Search functionality
-  const filteredData = plans.filter((plan: any) =>
-    plan?.title?.en?.includes(userSearch)
-  );
-
   const handleDeactivate = async (id: string) => {
     try {
-      // Optionally fetch the plan to confirm it exists
       const response = await axiosInstance.get(`/products/${id}`);
       if (!response.data) {
         console.error("Product not found:", id);
         return;
       }
 
-      console.log(response)
-      // Delete the plan
       await axiosInstance.put(`products/activation/${id}`);
-
-      // Optionally update the local state to reflect the deletion
-      setModalOpen(false); // Close modal after deletion
-      setSelectedProduct(null); // Clear selected plan
-
-      // Invalidate and refetch the plans
-      queryClient.invalidateQueries({ queryKey: ["plans"] }); // Refetch plans to update the list
+      setModalOpen(false);
+      setSelectedProduct(null);
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
     } catch (err) {
       console.error("Failed to delete plan:", err);
     }
   };
 
   return (
-    <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
+    <div className="flex flex-col p-4 md:p-10 gap-5 w-full max-w-[100vw] overflow-x-hidden pt-12 ">
       <PageTitle title="Products" />
-      <Options
-        haveSearch={true}
-        searchValue={userSearch}
-        setSearchValue={setUserSearch}
-        buttons={[
-          <Link to={"/new-product"} key="add-product">
-            <Button variant={"default"} className="flex items-center gap-1">
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Product</span>
-            </Button>
-          </Link>,
-        ]}
-      />
 
-      <DataTable
-        editLink="/edit-product"
-        columns={columns} // Pass columns directly
-        data={filteredData}
-        handleDelete={handleDeactivate}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+        <Options
+          haveSearch={true}
+          searchValue={userSearch}
+          setSearchValue={setUserSearch}
+          buttons={[
+            <Link
+              to="/new-product"
+              key="add-product"
+              className="w-full sm:w-auto"
+            >
+              <Button
+                variant="default"
+                className="w-full sm:w-auto items-center gap-1 flex justify-center"
+              >
+                <PlusIcon className="w-4 h-4" />
+                <span>Add Product</span>
+              </Button>
+            </Link>,
+          ]}
+        />
+      </div>
+
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileCardView data={filteredData} />
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          data={filteredData}
+          editLink="/edit-product"
+          handleDelete={handleDeactivate}
+        />
+      </div>
 
       {/* Confirmation Modal */}
       <ConfirmationModal
-        alertTitle="Confirm Deactivation"
-        actionBtnText="Deactivate"
+        alertTitle="Confirm Status Change"
+        actionBtnText={selectedProduct?.isActive ? "Deactivate" : "Activate"}
         isOpen={modalOpen}
         onClose={() => {
           setModalOpen(false);
@@ -209,7 +269,9 @@ export default function Plans() {
             handleDeactivate(selectedProduct.id);
           }
         }}
-        message={`Are you sure you want to deactivate the product "${selectedProduct?.title.en}"?`}
+        message={`Are you sure you want to ${
+          selectedProduct?.isActive ? "deactivate" : "activate"
+        } the product "${selectedProduct?.title.en}"?`}
       />
     </div>
   );
