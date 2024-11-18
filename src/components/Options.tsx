@@ -15,7 +15,7 @@ const Options = ({
 }: Props) => {
   return (
     <div
-      className={`flex flex-wrap gap-4 items-center ${
+      className={`w-full flex flex-wrap gap-4 items-center ${
         haveSearch ? "xl:justify-between" : "justify-end"
       }`}
     >

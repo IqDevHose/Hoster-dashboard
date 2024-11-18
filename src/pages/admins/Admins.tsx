@@ -11,9 +11,17 @@ import { Link, useNavigate } from "react-router-dom";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { PencilIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  PencilIcon,
+  Phone,
+  PlusIcon,
+  TrashIcon,
+  UserIcon,
+} from "lucide-react";
 import Loading from "@/components/Loading";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 type User = {
   avatar: null;
   birthDay: string;
@@ -75,6 +83,39 @@ export default function Admins() {
       </div>
     );
 
+  const MobileCardView = ({ data }: { data: User[] }) => (
+    <div className="space-y-4">
+      {data.map((user) => (
+        <Card key={user.id} className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-lg font-medium">{user.name}</CardTitle>
+              <Link to={`/edit-admin/${user.id}`} state={{ user }}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="h-4 w-4" />
+              {user.phone || "N/A"}
+            </div>
+            <div className="text-sm">
+              <span className="font-medium">Email: </span>
+              {user.email || "N/A"}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
   // Filter users based on search input
   const filteredData = users?.filter(
     (user: User) =>
@@ -109,7 +150,7 @@ export default function Admins() {
       cell: ({ row }) => {
         const id = row.original.id; // Access the user's ID
         const name = row.getValue("name") as string; // Access the user's name
-        console.log(row.original)
+        console.log(row.original);
 
         return (
           <div className="flex gap-2">
@@ -142,7 +183,7 @@ export default function Admins() {
   ];
 
   return (
-    <div className="flex flex-col overflow-hidden p-10 gap-5 w-full">
+    <div className="flex flex-col p-4 md:p-10 gap-5 w-full max-w-[100vw] overflow-x-hidden pt-12 ">
       <PageTitle title="Admins" />
       <Options
         haveSearch={true}
@@ -159,15 +200,23 @@ export default function Admins() {
           </Link>,
         ]}
       />
+
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileCardView data={filteredData || []} />
+      </div>
+
       {/* Pass the filtered data to the DataTable */}
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        editLink={"/edit-admin"} // Provide the base link for editing users
-        handleDelete={function (id: string): void {
-          throw new Error("Function not implemented.");
-        }}
-      />
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          data={filteredData || []}
+          editLink={"/edit-admin"} // Provide the base link for editing users
+          handleDelete={function (id: string): void {
+            throw new Error("Function not implemented.");
+          }}
+        />
+      </div>
 
       {/* Confirmation Modal */}
       <ConfirmationModal

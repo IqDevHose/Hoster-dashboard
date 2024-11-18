@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { PencilIcon, PlusIcon } from "lucide-react";
+import { Building2, Calendar, PencilIcon, Phone, PlusIcon } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Select,
@@ -17,6 +17,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Subscriptions() {
   const [userSearch, setUserSearch] = useState("");
@@ -27,7 +28,12 @@ export default function Subscriptions() {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const queryClient = useQueryClient();
-  const { data: subscriptions, isLoading, isError, error } = useQuery({
+  const {
+    data: subscriptions,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["subscriptions"],
     queryFn: async () => {
       const res = await axiosInstance.get("/subscriptions");
@@ -35,6 +41,58 @@ export default function Subscriptions() {
     },
     refetchOnWindowFocus: true,
   });
+
+  const MobileCardView = ({ data }: { data: any[] }) => (
+    <div className="space-y-4">
+      {data.map((record, index) => (
+        <Card key={index} className="border shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-lg font-medium">
+                {record.clientName}
+              </CardTitle>
+              <Link
+                to={`/edit-subscription/${record.id}`}
+                state={{ plan: record }}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-blue-500 hover:text-blue-600"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Building2 className="h-4 w-4" />
+              {record.domainName}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="h-4 w-4" />
+              {record.phoneNumber}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              Submission: {record.submissionDate}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              Expiry: {record.expiryDate}
+            </div>
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="text-sm">
+                <span className="font-medium">Status: </span>
+                {record.status}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   const columns: ColumnDef<any>[] = [
     {
@@ -69,7 +127,10 @@ export default function Subscriptions() {
 
         return (
           <div className="flex gap-2">
-            <Link to={`/edit-subscription/${id}`} state={{ plan: row.original }}>
+            <Link
+              to={`/edit-subscription/${id}`}
+              state={{ plan: row.original }}
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -99,7 +160,9 @@ export default function Subscriptions() {
 
   // Get unique years from data
   const years = Array.from(
-    new Set(subscriptions.map((sub: any) => new Date(sub.expiryDate).getFullYear()))
+    new Set(
+      subscriptions.map((sub: any) => new Date(sub.expiryDate).getFullYear())
+    )
   ).sort((a, b) => a - b);
 
   // Filter data
@@ -132,24 +195,26 @@ export default function Subscriptions() {
   };
 
   return (
-    <div className="flex flex-col overflow-hidden p-4 sm:p-6 lg:p-10 gap-5 w-full">
+    <div className="flex flex-col p-4 md:p-10 gap-5 w-full max-w-[100vw] overflow-x-hidden pt-12">
       <PageTitle title="Subscriptions" />
 
-      <Options
-        haveSearch={true}
-        searchValue={userSearch}
-        setSearchValue={setUserSearch}
-        buttons={[
-          <Link to="/new-subscription" key="add-subscription">
-            <Button variant="default" className="flex items-center gap-1">
-              <PlusIcon className="w-4 h-4" />
-              <span>Add Subscription</span>
-            </Button>
-          </Link>,
-        ]}
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+        <Options
+          haveSearch={true}
+          searchValue={userSearch}
+          setSearchValue={setUserSearch}
+          buttons={[
+            <Link to="/new-subscription" key="add-subscription">
+              <Button variant="default" className="flex items-center gap-1">
+                <PlusIcon className="w-4 h-4" />
+                <span className="">Add Subscription</span>
+              </Button>
+            </Link>,
+          ]}
+        />
+      </div>
 
-      <div className="flex gap-3 items-center mb-4">
+      <div className="flex gap-3 flex-col items-start md:flex-row md:items-center mb-4 ">
         {/* Filter by Status */}
         <Select
           value={statusFilter}
@@ -202,15 +267,22 @@ export default function Subscriptions() {
         </Select>
       </div>
 
-      <DataTable
-        editLink="/edit-subscription"
-        columns={columns}
-        data={filteredData}
-        handleDelete={(id: string) => {
-          setSelectedProduct(id);
-          setModalOpen(true);
-        }}
-      />
+      {/* Mobile View */}
+      <div className="md:hidden">
+        <MobileCardView data={filteredData || []} />
+      </div>
+
+      <div className="hidden md:block">
+        <DataTable
+          editLink="/edit-subscription"
+          columns={columns}
+          data={filteredData || []}
+          handleDelete={(id: string) => {
+            setSelectedProduct(id);
+            setModalOpen(true);
+          }}
+        />
+      </div>
 
       <ConfirmationModal
         isOpen={modalOpen}
