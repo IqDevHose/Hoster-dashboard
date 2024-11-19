@@ -25,6 +25,10 @@ export default function LoginPage() {
       // Save token to localStorage if login is successful
       console.log(data);
 
+      // if (phone.startsWith("0")){
+      //   phone = phone.substring(0, phone.length);
+      // }
+
       navigate("/otp", {
         state: { phone: phone },
       });
@@ -37,9 +41,11 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const formattedPhone = phone.startsWith("0") ? phone.substring(1) : phone;
     mutation.mutate({
-      phone: phone,
+      phone: `964${formattedPhone}`,
     });
+    console.log(formattedPhone);
   };
 
   // Add these new functions to clear the error
@@ -62,20 +68,21 @@ export default function LoginPage() {
 
         <form className="space-y-6" onSubmit={handleLogin}>
           {/* Email Input */}
-          <div>
+          <div className="flex items-center justify-center gap-2 border-black/10 border rounded">
             {/* <label
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
               Phone Number
             </label> */}
+            <div className="pl-2">+964</div>
             <input
               id="email"
               type="tel"
               value={phone}
               onChange={handleEmailChange}
               required
-              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3 py-2 border rounded focus:outline-none border-none focus:ring-2 focus:ring-indigo-500"
               placeholder="phone number"
             />
           </div>
