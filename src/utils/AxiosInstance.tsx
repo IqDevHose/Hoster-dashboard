@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create an axios instance with Vite environment variables
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000", // Use environment variable or fallback
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://api.hoster.iq/", // Use environment variable or fallback
   timeout: 10000, // Optional timeout
   headers: {
     "Content-Type": "application/json",
@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
 // Interceptors (same as before)
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("jwtToken");
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
