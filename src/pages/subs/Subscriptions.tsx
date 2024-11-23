@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button";
 import axiosInstance from "@/utils/AxiosInstance";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import Loading from "@/components/Loading";
-import { Building2, Calendar, PencilIcon, Phone, PlusIcon } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  Eye,
+  PencilIcon,
+  Phone,
+  PlusIcon,
+} from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Select,
@@ -51,18 +58,32 @@ export default function Subscriptions() {
               <CardTitle className="text-lg font-medium">
                 {record.clientName}
               </CardTitle>
-              <Link
-                to={`/edit-subscription/${record.id}`}
-                state={{ plan: record }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-blue-500 hover:text-blue-600"
+              <div>
+                <Link
+                  to={`/edit-subscription/${record.id}`}
+                  state={{ plan: record }}
                 >
-                  <PencilIcon className="h-4 w-4" />
-                </Button>
-              </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 hover:text-blue-600"
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link
+                  to={`/view-subscription/${record.id}`}
+                  state={{ plan: record }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-blue-500 hover:text-blue-600"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -137,6 +158,18 @@ export default function Subscriptions() {
                 className="text-blue-500 hover:text-blue-600"
               >
                 <PencilIcon className="h-4 w-4" />
+              </Button>
+            </Link>
+            <Link
+              to={`/view-subscription/${id}`}
+              state={{ plan: row.original }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-blue-500 hover:text-blue-600"
+              >
+                <Eye className="h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -274,6 +307,7 @@ export default function Subscriptions() {
 
       <div className="hidden md:block">
         <DataTable
+          viewLink="/view-subscription"
           editLink="/edit-subscription"
           columns={columns}
           data={filteredData || []}

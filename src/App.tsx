@@ -32,6 +32,7 @@ import EditAdmin from "./pages/admins/EditAdmin";
 import Leads from "./pages/leads/Leads";
 import AddLead from "./pages/leads/AddLead";
 import EditLead from "./pages/leads/EditLead";
+import ViewSubscription from "./pages/subs/ViewSubscription";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
         <Route path="/subscriptions" element={<Subscriptions />} />
         <Route path="/new-subscription" element={<AddSubscription />} />
         <Route path="/edit-subscription/:id" element={<EditSubscription />} />
+        <Route path="/view-subscription/:id" element={<ViewSubscription />} />
       </Route>
 
       {/* Optional: Catch-all route for unmatched paths */}
