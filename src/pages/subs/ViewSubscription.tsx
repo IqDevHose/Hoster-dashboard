@@ -4,6 +4,7 @@ import axiosInstance from "@/utils/AxiosInstance";
 import Spinner from "@/components/Spinner";
 import { Button } from "@/components/ui/button";
 import Handlebars from "handlebars";
+import { X } from "lucide-react";
 
 const ViewSubscription = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +14,9 @@ const ViewSubscription = () => {
   const [subscription, setSubscription] = useState<Record<string, any> | null>(
     null
   );
+  const [selectedPlan, setSelectedPlan] = useState("");
+  const [paidPrice, setPaidPrice] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     axiosInstance
@@ -156,20 +160,20 @@ const ViewSubscription = () => {
         <thead>
           <tr>
             <th>الوصف</th>
-            <th>سعر الوحدة</th>
+            <th></th>
             <th>المبلغ</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>اشتراك الخطة العادية</td>
-            <td>{{price}} د,ع</td>
+            <td>{{selectedPlan}}</td>
+            <td></td>
             <td>{{price}} د,ع</td>
           </tr>
           <tr>
-            <td>Domain .IQ</td>
-            <td>60,000,000</td>
-            <td>د.ع 60,000,000</td>
+            <td>{{notes}}</td>
+            <td></td>
+            <td></td>
           </tr>
         </tbody>
       </table>
@@ -181,11 +185,11 @@ const ViewSubscription = () => {
       <table>
         <tr>
           <td style="text-align: right; padding: 10px;">إجمالي المبلغ:</td>
-          <td style="text-align: left; padding: 10px;">د.ع 300,000,000</td>
+          <td style="text-align: left; padding: 10px;">{{price}} د.ع</td>
         </tr>
         <tr>
           <td style="text-align: right; padding: 10px;">تم دفع:</td>
-          <td style="text-align: left; padding: 10px;">د.ع 150,000,000</td>
+          <td style="text-align: left; padding: 10px;">{{paidPrice}} د.ع</td>
         </tr>
       </table>
   
@@ -208,7 +212,12 @@ const ViewSubscription = () => {
     const compiledTemplate = Handlebars.compile(template);
 
     // Generate the HTML with dynamic data
-    const renderedHTML = compiledTemplate(subscription);
+    const renderedHTML = compiledTemplate({
+      selectedPlan,
+      notes,
+      paidPrice,
+      ...subscription,
+    });
 
     // Open a new window and print the content
     const printWindow = window.open("", "", "width=900,height=650");
@@ -226,17 +235,99 @@ const ViewSubscription = () => {
 
   return (
     <div className="p-10 flex flex-col gap-5 w-full">
-      {
-        isOpen && (
-          <div  className="absolute w-full h-full bg-black/50 backdrop-blur-sm top-0 left-0 z-[100] flex items-center justify-center">
-            <div  className="bg-white rounded-lg shadow-lg p-6 w-[90%] sm:w-[400px] relative">
-              <h1 className="text-xl font-bold text-gray-800 mb-4">Plan & Payment</h1>
-              <p className="text-sm text-gray-600 mb-6">This may take a moment</p>
+      {isOpen && (
+        <div className="absolute w-full h-full bg-black/50 backdrop-blur-sm top-0 left-0 z-[100] flex items-center justify-center">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[90%] sm:w-[400px] relative">
+            <X
+              onClick={() => setIsOpen(false)}
+              className="absolute top-4 right-4 cursor-pointer"
+            />
+
+            <h1 className="text-xl font-bold text-gray-800 my-4">
+              Plan & Payment
+            </h1>
+
+            <p className="text-sm text-gray-600 mb-6">
+              Update the subscription details below:
+            </p>
+
+            {/* Plan Name Select Input */}
+            <div className="mb-4">
+              <label
+                htmlFor="plan"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Plan Name
+              </label>
+              <select
+                id="plan"
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                defaultValue={selectedPlan} // Replace with the default plan name if available
+                onChange={(e) => setSelectedPlan(e.target.value)}
+              >
+                <option value="" disabled>
+                  Select a plan
+                </option>
+                <option value="Basic">Basic</option>
+                <option value="Standard">Standard</option>
+                <option value="Premium">Premium</option>
+              </select>
+            </div>
+
+            {/* Price Input */}
+            <div className="mb-4">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Paid Price
+              </label>
+              <input
+                type="number"
+                id="price"
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter price"
+                min="0"
+                defaultValue={paidPrice}
+                onChange={(e) => setPaidPrice(e.target.value)}
+              />
+            </div>
+
+            {/* Price Input */}
+            <div className="mb-4">
+              <label
+                htmlFor="notes"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Extra Notes (optional)
+              </label>
+              <input
+                type="text"
+                id="notes"
+                className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Notes..."
+                defaultValue={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  // Handle form submission logic
+                  handlePrint();
+
+                  setIsOpen(false);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Save
+              </Button>
             </div>
           </div>
-        )
-      }
-
+        </div>
+      )}
 
       <h1 className="text-2xl font-bold">View Subscription</h1>
 
