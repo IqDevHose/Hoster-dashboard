@@ -18,7 +18,7 @@ export default function LoginPage() {
   const mutation = useMutation({
     mutationFn: async (data: LoginData) => {
       // API call to log in
-      const response = await axiosInstance.post("/auth/login", data);
+      const response = await axiosInstance.post("/auth/login", data, {timeout: 10000});
       return response.data;
     },
     onSuccess: (data) => {
